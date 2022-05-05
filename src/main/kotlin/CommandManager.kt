@@ -1,40 +1,57 @@
 import com.sun.istack.Nullable
-import commands.potatoCommand
-import commands.questionCommand
+import commands.Potato
+import commands.Question
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.io.FileNotFoundException
 import java.util.*
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 import kotlin.collections.HashMap
 
-class CommandManager(val bot: Main) {
+open class CommandManager(private val bot: Main) {
 
-    val cmds: HashMap<String, Command> = HashMap()
+    private val commands: HashMap<String, Command> = HashMap()
 
     init {
-        addCommand(questionCommand())
-        addCommand(potatoCommand())
-
-        bot.Logger().info("commands added!")
     }
 
+    open fun addAllCommands() {
+        addCommand(Question(), Potato())
+
+        bot.Logger().info("commands added! Commands : " + commands.keys.stream().collect(Collectors.joining(" / ")))
+    }
+
+    /**
+     * @param event return to the Message Received Event in the JDA Api
+     * @param prefix return to the bot prefix, so user should use <prefix> first and then the command!
+     *
+     * Make sure that even if there is arguments existing the command will work,
+     * so you should use if statement in command class to void this problem but , in other hand, it won't make any issues with command
+     */
     @Throws(FileNotFoundException::class)
-    fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
+    open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
         val split: List<String> = event.message.contentRaw.replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
         val command: String = split[0].lowercase(Locale.getDefault())
 
-        if (cmds.containsKey(command)) {
+        if (commands.containsKey(command)) {
             val args: List<String> = split.subList(1, split.size)
 
-            cmds[command]?.handle(args, event)
+            commands[command]?.handle(args, event)
         }
     }
 
-    private fun addCommand(command: Command) {
-        if (!cmds.containsKey(command.getCommand)) {
-            // Add the command
-            cmds[command.getCommand] = command
+    /**
+     * The command should exist in the Map, otherwise, it won't work!
+     */
+    private fun addCommand(vararg command: Command?) {
+        for (cmd in command) {
+            if (cmd != null) {
+                if (!commands.containsKey(cmd.getCommand)) {
+
+                    // Simple to commands.put(key, value) but with other way
+                    commands[cmd.getCommand] = cmd
+                }
+            }
         }
     }
-
 }

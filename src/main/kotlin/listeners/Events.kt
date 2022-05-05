@@ -10,25 +10,28 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import java.io.FileNotFoundException
 
-class Events(val bot: Main): ListenerAdapter() {
+class Events(private val bot: Main): ListenerAdapter() {
+
+    private val commandManager = CommandManager(bot)
 
     override fun onReady(event: ReadyEvent) {
         event.jda.presence.setPresence(OnlineStatus.ONLINE, Activity.playing("Im bitch for my master"))
+        commandManager.addAllCommands()
+
         bot.Logger().info("Hey master, Im totally ready & im currently in ${event.guildTotalCount} Guilds right now :3!")
     }
 
     override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
         if (event.channelType.isGuild) {
-            event.retrieveMessage().queue({ q -> q.addReaction(event.reactionEmote.emoji).queue() })
+            event.retrieveMessage().queue { q -> q.addReaction(event.reactionEmote.emoji).queue() }
         }
     }
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channelType.isGuild) {
-            val prefix = "r?";
+            val prefix = "r?"
 
             if (event.message.contentRaw.contains(prefix)) {
-                val commandManager = CommandManager(bot)
 
                 try {
                     commandManager.handleCommand(event, prefix)

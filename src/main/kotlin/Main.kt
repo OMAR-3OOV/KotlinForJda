@@ -1,5 +1,3 @@
-import commands.potatoCommand
-import commands.questionCommand
 import listeners.Events
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -8,12 +6,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class Main() {
+class Main {
 
     fun Logger(): Logger = LoggerFactory.getLogger(Class.forName("Main"))
 
     fun start() {
-        var gateways = arrayListOf<GatewayIntent>(
+        val gateways = arrayListOf (
             GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
             GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING,
             GatewayIntent.GUILD_PRESENCES,
@@ -23,7 +21,7 @@ class Main() {
 
         val builder = JDABuilder.create(token, gateways)
         builder.enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS)
-        builder.disableCache(EnumSet.of(CacheFlag.EMOTE))
+        builder.disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
         builder.addEventListeners(Events(this))
         builder.build()
 

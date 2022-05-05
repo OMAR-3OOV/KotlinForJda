@@ -3,9 +3,9 @@ package commands
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-class questionCommand: Command {
+class Question: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
-        event.channel.sendMessage("No master, im not gay").queue()
+        event.channel.sendMessage("NO IM NOT GAY").queue()
     }
 
     override val getHelp: String

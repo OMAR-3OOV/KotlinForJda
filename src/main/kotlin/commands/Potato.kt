@@ -4,11 +4,11 @@ import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.lang.NullPointerException
 
-class potatoCommand: Command {
+class Potato: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
         try {
             if (args.isEmpty()) {
-                event.channel.sendMessage("Here a potato for you master :3 :potato:").queue()
+                event.channel.sendMessage("Here a potato for you sweetie :3 :potato:").queue()
             }
         } catch (error: NullPointerException) {
             error.printStackTrace()
@@ -16,7 +16,7 @@ class potatoCommand: Command {
     }
 
     override val getHelp: String
-        get() = "${getCommand}"
+        get() = getCommand
     override val getCommand: String
         get() = "potato"
     override val getDescription: String
