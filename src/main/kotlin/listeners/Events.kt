@@ -25,7 +25,7 @@ class Events(val bot: Main): ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channelType.isGuild) {
-            val prefix = "r?";
+            val prefix = "r!";
 
             if (event.message.contentRaw.contains(prefix)) {
                 val commandManager = CommandManager(bot)
