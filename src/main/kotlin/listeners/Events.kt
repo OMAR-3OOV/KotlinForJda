@@ -19,7 +19,7 @@ class Events(val bot: Main): ListenerAdapter() {
 
     override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
         if (event.channelType.isGuild) {
-            event.retrieveMessage().queue { q -> q.addReaction(event.reactionEmote.emoji).queue() }
+            event.retrieveMessage().queue({ q -> q.addReaction(event.reactionEmote.emoji).queue() })
         }
     }
 
