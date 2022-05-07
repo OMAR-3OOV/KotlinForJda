@@ -15,11 +15,11 @@ class Potato: Command {
         }
     }
 
-    override val getHelp: String
-        get() = getCommand
-    override val getCommand: String
+    override val help: String
+        get() = command
+    override val command: String
         get() = "potato"
-    override val getDescription: String
+    override val description: String
         get() = "I will gives you unlimited potatos :3"
     override val isDisplay: Boolean
         get() = true

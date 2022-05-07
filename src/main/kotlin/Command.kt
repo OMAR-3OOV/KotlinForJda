@@ -3,13 +3,14 @@ import java.io.FileNotFoundException
 
 interface Command {
 
-    fun handle(args: List<String>, event: MessageReceivedEvent) { throw FileNotFoundException() }
+    @Throws(FileNotFoundException::class)
+    fun handle(args: List<String>, event: MessageReceivedEvent)
 
-    val getHelp: String
+    val help: String
 
-    val getCommand: String
+    val command: String
 
-    val getDescription: String
+    val description: String
 
     val isDisplay: Boolean
 

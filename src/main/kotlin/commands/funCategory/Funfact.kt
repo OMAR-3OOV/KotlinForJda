@@ -1,21 +1,19 @@
-package commands
+package commands.funCategory
 
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 
-class Question: Command {
+class Funfact: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
-        event.channel.sendMessage("NO IM NOT GAY").queue()
+        // codes
     }
 
     override val help: String
-        get() = "r?${command}"
+        get() = "r?funfact"
     override val command: String
-        get() = "areyougay"
+        get() = "funfact"
     override val description: String
-        get() = "ask me if im gay"
+        get() = "i will tell you a funfact"
     override val isDisplay: Boolean
         get() = true
-
-
 }

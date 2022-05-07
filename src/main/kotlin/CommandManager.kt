@@ -1,24 +1,25 @@
 import com.sun.istack.Nullable
+import commands.Help
 import commands.Potato
 import commands.Question
+import commands.funCategory.Funfact
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.io.FileNotFoundException
 import java.util.*
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 import kotlin.collections.HashMap
 
-open class CommandManager(private val bot: Main) {
+open class CommandManager(private val bot : Main.Companion) {
 
-    private val commands: HashMap<String, Command> = HashMap()
+    var commands: MutableMap<String, Command> = HashMap()
 
     init {
-    }
-
-    open fun addAllCommands() {
-        addCommand(Question(), Potato())
-
-        bot.Logger().info("commands added! Commands : " + commands.keys.stream().collect(Collectors.joining(" / ")))
+        addCommand(
+            Question(),
+            Potato(),
+            Help(bot),
+            Funfact(),
+        )
     }
 
     /**
@@ -45,12 +46,10 @@ open class CommandManager(private val bot: Main) {
      */
     private fun addCommand(vararg command: Command?) {
         for (cmd in command) {
-            if (cmd != null) {
-                if (!commands.containsKey(cmd.getCommand)) {
+            if (!commands.containsKey(cmd!!.command)) {
 
-                    // Simple to commands.put(key, value) but with other way
-                    commands[cmd.getCommand] = cmd
-                }
+                // Simple to commands.put(key, value) but with other way
+                commands[cmd.command] = cmd
             }
         }
     }
