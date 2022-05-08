@@ -15,7 +15,7 @@ class Events(private val bot: Main.Companion): ListenerAdapter() {
     private val commandManager = CommandManager(bot)
 
     override fun onReady(event: ReadyEvent) {
-        event.jda.presence.setPresence(OnlineStatus.ONLINE, Activity.playing("Im bitch for my master"))
+        event.jda.presence.setPresence(OnlineStatus.ONLINE, Activity.playing("This bot is working on kotlin language!"))
 
         Main.Logger().info("Hey master, Im totally ready & im currently in ${event.guildTotalCount} Guilds right now :3!")
     }
@@ -30,7 +30,7 @@ class Events(private val bot: Main.Companion): ListenerAdapter() {
         if (event.channelType.isGuild) {
             val prefix = "r?"
 
-            if (event.message.contentRaw.contains(prefix)) {
+            if (event.message.contentRaw.lowercase().contains(prefix)) {
 
                 try {
                     commandManager.handleCommand(event, prefix)

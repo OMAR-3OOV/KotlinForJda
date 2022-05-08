@@ -31,7 +31,7 @@ open class CommandManager(private val bot : Main.Companion) {
      */
     @Throws(FileNotFoundException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
-        val split: List<String> = event.message.contentRaw.replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
+        val split: List<String> = event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
         val command: String = split[0].lowercase(Locale.getDefault())
 
         if (commands.containsKey(command)) {
