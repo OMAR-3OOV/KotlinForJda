@@ -5,8 +5,13 @@ import CommandManager
 import Main
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import utilities.categoryUtil.Categories
+import utilities.categoryUtil.CategoryManager
 import java.awt.Color
+import java.lang.NullPointerException
+import java.util.*
 import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class Help(private val bot: Main.Companion) : Command {
 
@@ -17,55 +22,88 @@ class Help(private val bot: Main.Companion) : Command {
 
         val commands: MutableMap<String, Command> = commandManager.commands
 
-        if (args.isEmpty()) {
-            val description: StringBuilder = embed.descriptionBuilder
-
-            embed.setTitle("⚙ Help assistant!")
-
-            /**
-             *  it's really simple format for codes which is per each 3 values in the map.
-             *  it will be a "\n" so every line going to have 3 values only
-             *
-             *  it sorted like this: [k1, k2, k3] , [k4, k5, k6], [k7,k8] it will keep sorting as that till the whole map sort
-             *
-             *  NOTE: map.chunked() is only available to kotlin!
-             *  in Java it might be a little different you have to make a simple math.
-             *  Using AtomicInteger is the easiest way I find out!
-             *
-             *  @code
-             *  AtomicInteger counter = new AtomicInteger(0);
-             *
-             *  map.keySet().stream().map(map -> ((counter.getAndAdd(1) % 3 == 0)? "\n":"/") + map).collect(collectors.joining(""));
-             */
-            description.append(commands.keys.chunked(3).stream().map { it.joinToString("/") { map -> "**${map}**" } }.collect(Collectors.joining("\n")))
-            embed.setFooter("· Usage; r?help <command>")
-        } else {
-            if (commands.containsKey(args[0])) {
-                val info: Command? = commands[args[0]]
+        try {
+            if (args.isEmpty()) {
                 val description: StringBuilder = embed.descriptionBuilder
 
-                embed.setTitle("${info!!.command} :")
-                description.append("**Explaining for the command:**").append("\n")
-                description.append("> **Description:** ${info.description}").append("\n")
-                description.append("> **How to use:** ${info.help}").append("\n")
-                description.append("> **Status:**").append(" ")
+                embed.setTitle("⚙ Help assistant!")
 
-                if (info.isDisplay) {
-                    description.append("Everyone can you this command")
-                    embed.setColor(Color(0, 181, 13))
-                } else {
-                    description.append("Staff only able to use this command")
-                    embed.setColor(Color(255, 0, 0))
+                /**
+                 *  it's really simple format for codes which is per each 3 values in the map.
+                 *  it will be a "\n" so every line going to have 3 values only
+                 *
+                 *  it sorted like this: [k1, k2, k3] , [k4, k5, k6], [k7,k8] it will keep sorting as that till the whole map sort
+                 *
+                 *  NOTE: map.chunked() is only available to kotlin!
+                 *  in Java it might be a little different you have to make a simple math.
+                 *  Using AtomicInteger is the easiest way I find out!
+                 *
+                 *  @code
+                 *  AtomicInteger counter = new AtomicInteger(0);
+                 *
+                 *  map.keySet().stream().map(map -> ((counter.getAndAdd(1) % 3 == 0)? "\n":"/") + map).collect(collectors.joining(""));
+                 */
+
+                for (category in Categories.values()) {
+                    val cm = CategoryManager(category)
+
+                    description.append("**${cm.name}**").append("\n").append(
+                        commands.values.stream().filter { filter -> filter.category == cm.category }
+                            .collect(Collectors.toList()).chunked(4).stream()
+                            .map { it.joinToString(" / ") { value -> "`${value.command}`" } }
+                            .collect(Collectors.joining("\n"))
+                    ).append("\n")
                 }
-
                 embed.setFooter("· Usage; r?help <command>")
             } else {
-                embed.setTitle("${args[0]}: ")
-                embed.setDescription("> This command is not exist make sure to use right now `r?help`!")
-                embed.setColor(Color(255, 0, 0))
-            }
+                if (Arrays.stream(Categories.values()).map { it.displayName.lowercase() }.toList().contains(args[0])) {
+                    val description: StringBuilder = embed.descriptionBuilder
+                    val info =
+                        Categories.values().filter { checker -> checker.displayName.lowercase() == args[0] }.stream()
+                            .findFirst().get()
 
+                    embed.setTitle("⚙ ${info.displayName} (Category) :")
+                    description.append("\uD83D\uDCD4 **Commands :**").append("\n> ")
+                        .append(commands.values.stream().filter { filter -> filter.category == info }.toList()
+                            .chunked(4).stream().map { it.joinToString("/") { value -> "`${value.command}`" } }
+                            .collect(Collectors.joining("\n> "))
+                        ).append("\n \n")
+                    description.append("\uD83D\uDCDC **Description:** ${info.description}")
+
+                    embed.setFooter("· Usage; r?help <category>")
+                } else if (commands.values.map { it.command.lowercase() }.toList().contains(args[0])) {
+                    val info: Command =
+                        commands.values.stream().filter() { checker -> checker.command.lowercase() == args[0] }
+                            .findFirst().get()
+                    val description: StringBuilder = embed.descriptionBuilder
+
+                    embed.setTitle("${info.command} ( Command ) :")
+                    description.append("**Explaining for the command:**").append("\n")
+                    description.append("> **Description:** ${info.description}").append("\n")
+                    description.append("> **How to use:** ${info.help}").append("\n")
+                    description.append("> **Status:**").append(" ")
+
+                    if (info.isDisplay) {
+                        description.append("Everyone can you this command")
+                        embed.setColor(Color(0, 181, 13))
+                    } else {
+                        description.append("Staff only able to use this command")
+                        embed.setColor(Color(255, 0, 0))
+                    }
+
+                    embed.setFooter("· Usage; r?help <command>")
+                } else {
+                    embed.setTitle(" ${args[0]} ??")
+                    embed.setDescription("> This Command / Category is not existing on my system please use `r?help` to have more information")
+                    embed.setColor(Color(255, 0, 0))
+                }
+            }
+        } catch (error: NullPointerException) {
+            embed.setTitle(" Something went wrong ( ${error.message} })")
+            embed.setDescription("> Please report this issue to the developer, `Indra#4646`")
+            embed.setColor(Color(255, 0, 0))
         }
+
         event.channel.sendMessageEmbeds(embed.build()).queue()
     }
 
@@ -74,6 +112,8 @@ class Help(private val bot: Main.Companion) : Command {
         get() = "$command <command>"
     override val command: String
         get() = "help"
+    override val category: Categories
+        get() = Categories.INFORMATION
     override val description: String
         get() = "i will assistant you with everything you need"
     override val isDisplay: Boolean

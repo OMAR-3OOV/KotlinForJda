@@ -1,17 +1,22 @@
+import utilities.categoryUtil.Categories
+import utilities.categoryUtil.CategoryManager
 import com.sun.istack.Nullable
 import commands.Help
 import commands.Potato
 import commands.Question
 import commands.funCategory.Funfact
+import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import java.io.FileNotFoundException
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 
-open class CommandManager(private val bot : Main.Companion) {
+open class CommandManager(bot: Main.Companion) {
 
     var commands: MutableMap<String, Command> = HashMap()
+
+    private var categories: MutableMap<String, Categories> = HashMap()
 
     init {
         addCommand(
@@ -19,7 +24,10 @@ open class CommandManager(private val bot : Main.Companion) {
             Potato(),
             Help(bot),
             Funfact(),
+            RPC(),
         )
+
+        registerCategories()
     }
 
     /**
@@ -31,13 +39,14 @@ open class CommandManager(private val bot : Main.Companion) {
      */
     @Throws(FileNotFoundException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
-        val split: List<String> = event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
+        val split: List<String> =
+            event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
         val command: String = split[0].lowercase(Locale.getDefault())
 
         if (commands.containsKey(command)) {
             val args: List<String> = split.subList(1, split.size)
 
-            commands[command]?.handle(args, event)
+            commands[command]!!.handle(args, event)
         }
     }
 
@@ -50,6 +59,18 @@ open class CommandManager(private val bot : Main.Companion) {
 
                 // Simple to commands.put(key, value) but with other way
                 commands[cmd.command] = cmd
+            }
+        }
+    }
+
+    private fun registerCategories() {
+        for (category in Categories.values()) {
+            val cm = CategoryManager(category)
+
+            // keyId is simple to <category-name>:<category-id>
+
+            if (!categories.containsKey(cm.keyId())) {
+                categories[cm.keyId()] = cm.category
             }
         }
     }
