@@ -54,6 +54,8 @@ class Help(private val bot: Main.Companion) : Command {
                             .collect(Collectors.joining("\n"))
                     ).append("\n")
                 }
+
+                embed.setColor(Color(255, 170, 120))
                 embed.setFooter("· Usage; r?help <command>")
             } else {
                 if (Arrays.stream(Categories.values()).map { it.displayName.lowercase() }.toList().contains(args[0])) {

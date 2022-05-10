@@ -1,3 +1,4 @@
+import commands.gamesCategory.RPCEvent
 import listeners.Events
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -24,7 +25,7 @@ class Main {
             val builder = JDABuilder.create(token, gateways)
             builder.enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS)
             builder.disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
-            builder.addEventListeners(Events(this))
+            builder.addEventListeners(Events(this), RPCEvent())
             builder.build()
 
             Logger().info("Bot has been built!")
