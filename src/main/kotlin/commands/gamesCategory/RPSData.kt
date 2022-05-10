@@ -9,9 +9,14 @@ import java.awt.Color
 import java.util.*
 import kotlin.collections.ArrayList
 
-data class RPC_Data(val sender: User, val opponent: User, val textChannel: TextChannel, var embed: EmbedBuilder) {
+data class RPSData(val sender: User, val opponent: User, val textChannel: TextChannel, var embed: EmbedBuilder) {
 
-    val gamesList = LinkedList<RPC_Data>()
+    companion object {
+        @JvmStatic
+        var rps: MutableMap<User, RPSData> = LinkedHashMap()
+    }
+
+    val gamesList = LinkedList<RPSData>()
 
     val rock: String = "✊"
     val paper: String = "\uD83D\uDD90"
@@ -26,14 +31,14 @@ data class RPC_Data(val sender: User, val opponent: User, val textChannel: TextC
     var gameID: Int? = null
 
     init {
-        if (!RPC.rpc.containsKey(sender)) {
-            RPC.rpc[sender] = this
+        if (!rps.containsKey(sender)) {
+            rps[sender] = this
             gameCreate()
         } else {
             textChannel.sendMessage("${this.sender.asMention}, You're already in game with ${this.opponent.asMention}").queue()
         }
 
-        println(RPC.rpc.entries)
+        println(rps.entries)
     }
 
     fun gameCreate() {
@@ -61,8 +66,6 @@ data class RPC_Data(val sender: User, val opponent: User, val textChannel: TextC
         bts.add(Button.success("game-scissors", scissors))
 
         val message = this.textChannel.sendMessageEmbeds(this.embed.build()).setActionRows(ActionRow.of(bts).asEnabled()).complete()
-
-        RPC.message[this] = message
     }
 
     fun gameMessage():StringBuilder {
@@ -102,18 +105,18 @@ data class RPC_Data(val sender: User, val opponent: User, val textChannel: TextC
     }
 
     fun rematch() {
-        
+
     }
 
     fun endGame() {
-        if (RPC.rpc.containsKey(sender)) {
-            RPC.rpc.remove(sender)
+        if (rps.containsKey(sender)) {
+            rps.remove(sender)
         }
     }
 
     fun endGame(user: User) {
-        if (RPC.rpc.containsKey(user)) {
-            RPC.rpc.remove(user)
+        if (rps.containsKey(user)) {
+            rps.remove(user)
         }
     }
 }

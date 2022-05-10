@@ -2,19 +2,11 @@ package commands.gamesCategory
 
 import Command
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
 import java.lang.NullPointerException
 
 class RPC : Command {
-
-    companion object {
-        @JvmStatic
-        var rpc: MutableMap<User, RPC_Data> = LinkedHashMap()
-        var message: MutableMap<RPC_Data, Message> = LinkedHashMap()
-    }
 
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
         // codes
@@ -52,7 +44,7 @@ class RPC : Command {
 
                 embed.setTitle("RPC ( ${user.name} vs ${event.jda.selfUser.name} )")
 
-                val rpcGame = RPC_Data(user, bot, event.textChannel, embed)
+                val rpcGame = RPSData(user, bot, event.textChannel, embed)
             }
 
         } catch (userErr: NullPointerException) {
