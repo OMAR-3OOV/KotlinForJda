@@ -9,6 +9,10 @@ import java.awt.Color
 import java.util.*
 import kotlin.collections.ArrayList
 
+/*
+rebuild tomorrow
+ */
+
 data class RPSData(val sender: User, val opponent: User, val textChannel: TextChannel, var embed: EmbedBuilder) {
 
     companion object {

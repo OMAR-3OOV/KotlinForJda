@@ -1,9 +1,11 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.6.21'
     id 'java'
+    id 'application'
 }
 
 group 'org.system'
+mainClassName = 'MainKt'
 version '0.0.1'
 
 sourceCompatibility = JavaVersion.VERSION_18
