@@ -51,15 +51,15 @@ open class CommandManager(bot: Main.Companion) {
     }
 
     /**
+     * a supertype function
      * The command should exist in the Map, otherwise, it won't work!
+     *
+     * New
      */
-    private fun addCommand(vararg command: Command?) {
-        for (cmd in command) {
-            if (!commands.containsKey(cmd!!.command)) {
-
-                // Simple to commands.put(key, value) but with other way
-                commands[cmd.command] = cmd
-            }
+    private fun addCommand(vararg commands: Command) {
+        for (command in commands) {
+            if (this.commands.containsKey(command.command)) continue
+            this.commands[command.command] = command
         }
     }
 
@@ -67,11 +67,8 @@ open class CommandManager(bot: Main.Companion) {
         for (category in Categories.values()) {
             val cm = CategoryManager(category)
 
-            // keyId is simple to <category-name>:<category-id>
-
-            if (!categories.containsKey(cm.keyId())) {
-                categories[cm.keyId()] = cm.category
-            }
+            if (categories.containsKey(cm.keyId())) continue // keyId is simple to <category-name>:<category-id>
+            categories[cm.keyId()] = cm.category
         }
     }
 }
