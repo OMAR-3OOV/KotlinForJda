@@ -12,6 +12,7 @@ import java.lang.NullPointerException
 import java.util.*
 import java.util.stream.Collectors
 import java.util.stream.Stream
+import kotlin.streams.toList
 
 class Help(private val bot: Main.Companion) : Command {
 
@@ -44,11 +45,9 @@ class Help(private val bot: Main.Companion) : Command {
                  *  map.keySet().stream().map(map -> ((counter.getAndAdd(1) % 3 == 0)? "\n":"/") + map).collect(collectors.joining(""));
                  */
 
-                for (category in Categories.values()) {
-                    val cm = CategoryManager(category)
-
-                    description.append("**${cm.name}**").append("\n").append(
-                        commands.values.stream().filter { filter -> filter.category == cm.category }
+                commandManager.commandsByCategory.forEach { (category, commands) ->
+                    description.append("**${category.displayName}**").append("\n").append(
+                        commands.stream()
                             .collect(Collectors.toList()).chunked(4).stream()
                             .map { it.joinToString(" / ") { value -> "`${value.command}`" } }
                             .collect(Collectors.joining("\n"))
@@ -65,11 +64,13 @@ class Help(private val bot: Main.Companion) : Command {
                             .findFirst().get()
 
                     embed.setTitle("⚙ ${info.displayName} (Category) :")
+
                     description.append("\uD83D\uDCD4 **Commands :**").append("\n> ")
-                        .append(commands.values.stream().filter { filter -> filter.category == info }.toList()
-                            .chunked(4).stream().map { it.joinToString("/") { value -> "`${value.command}`" } }
+                        .append(commandManager.commandsByCategory[info]!!.chunked(4).stream()
+                            .map { it.joinToString ("/") { v -> "`${v.command}`" } }
                             .collect(Collectors.joining("\n> "))
                         ).append("\n \n")
+
                     description.append("\uD83D\uDCDC **Description:** ${info.description}")
 
                     embed.setFooter("· Usage; r?help <category>")
@@ -79,7 +80,7 @@ class Help(private val bot: Main.Companion) : Command {
                             .findFirst().get()
                     val description: StringBuilder = embed.descriptionBuilder
 
-                    embed.setTitle("${info.command} ( Command ) :")
+                    embed.setTitle("${info.command} ( ${info.category.displayName} ) :")
                     description.append("**Explaining for the command:**").append("\n")
                     description.append("> **Description:** ${info.description}").append("\n")
                     description.append("> **How to use:** ${info.help}").append("\n")

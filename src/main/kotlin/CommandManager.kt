@@ -7,27 +7,36 @@ import commands.Question
 import commands.funCategory.Funfact
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import java.io.FileNotFoundException
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
+@OptIn(ExperimentalTime::class)
 open class CommandManager(bot: Main.Companion) {
 
-    var commands: MutableMap<String, Command> = HashMap()
+    var commands: MutableMap<String, Command> = LinkedHashMap()
 
     private var categories: MutableMap<String, Categories> = HashMap()
+    open var commandsByCategory: TreeMap<Categories, List<Command>> = TreeMap()
 
     init {
-        addCommand(
-            Question(),
-            Potato(),
-            Help(bot),
-            Funfact(),
-            RPC(),
-        )
+        val (task, time) = measureTimedValue {
+            addCommand(
+                Question(),
+                Potato(),
+                Help(bot),
+                Funfact(),
+                RPC(),
+            )
+        }
+
+        println("the task took $time!")
 
         registerCategories()
+        registerCommandsIntoCategory()
     }
 
     /**
@@ -37,7 +46,7 @@ open class CommandManager(bot: Main.Companion) {
      * Make sure that even if there is arguments existing the command will work,
      * so you should use if statement in command class to void this problem but , in other hand, it won't make any issues with command
      */
-    @Throws(FileNotFoundException::class)
+    @Throws(NullPointerException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
         val split: List<String> =
             event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
@@ -46,20 +55,21 @@ open class CommandManager(bot: Main.Companion) {
         if (commands.containsKey(command)) {
             val args: List<String> = split.subList(1, split.size)
 
-            commands[command]!!.handle(args, event)
+            commands[command]?.handle(args, event)
         }
     }
 
     /**
+     * a supertype function
      * The command should exist in the Map, otherwise, it won't work!
+     *
+     * New
      */
-    private fun addCommand(vararg command: Command?) {
-        for (cmd in command) {
-            if (!commands.containsKey(cmd!!.command)) {
 
-                // Simple to commands.put(key, value) but with other way
-                commands[cmd.command] = cmd
-            }
+    private fun addCommand(vararg commands: Command) {
+        commands.forEach { command ->
+            if (this.commands.containsKey(command.command)) return
+            this.commands[command.command] = command
         }
     }
 
@@ -67,11 +77,14 @@ open class CommandManager(bot: Main.Companion) {
         for (category in Categories.values()) {
             val cm = CategoryManager(category)
 
-            // keyId is simple to <category-name>:<category-id>
+            if (categories.containsKey(cm.keyId())) continue // keyId is simple to <category-name>:<category-id>
+            categories[cm.keyId()] = cm.category
+        }
+    }
 
-            if (!categories.containsKey(cm.keyId())) {
-                categories[cm.keyId()] = cm.category
-            }
+    private fun registerCommandsIntoCategory() {
+        Categories.values().forEach { category ->
+            commandsByCategory[category] = commands.values.stream().filter { filter -> filter.category == category }.toList()
         }
     }
 }
