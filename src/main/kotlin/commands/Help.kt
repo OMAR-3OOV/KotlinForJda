@@ -80,7 +80,7 @@ class Help(private val bot: Main.Companion) : Command {
                             .findFirst().get()
                     val description: StringBuilder = embed.descriptionBuilder
 
-                    embed.setTitle("${info.command} ( ${info.category.displayName} ) :")
+                    embed.setTitle("${info.command} ( ${info.category.displayName} category) :")
                     description.append("**Explaining for the command:**").append("\n")
                     description.append("> **Description:** ${info.description}").append("\n")
                     description.append("> **How to use:** ${info.help}").append("\n")
