@@ -23,7 +23,6 @@ repositories {
 dependencies {
 
     implementation("net.dv8tion:JDA:5.0.0-alpha.11")
-    //implementation("com.google.guava:guava:31.1-jre")
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha5'
 }
 
