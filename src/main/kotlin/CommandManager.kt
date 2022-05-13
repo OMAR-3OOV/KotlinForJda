@@ -11,29 +11,23 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTimedValue
 
-@OptIn(ExperimentalTime::class)
 open class CommandManager(bot: Main.Companion) {
 
     var commands: MutableMap<String, Command> = LinkedHashMap()
 
     private var categories: MutableMap<String, Categories> = HashMap()
-    open var commandsByCategory: TreeMap<Categories, List<Command>> = TreeMap()
+    open var commandsByCategory = TreeMap<Categories, List<Command>>()
 
     init {
-        val (task, time) = measureTimedValue {
-            addCommand(
-                Question(),
-                Potato(),
-                Help(bot),
-                Funfact(),
-                RPC(),
-            )
-        }
 
-        println("the task took $time!")
+        addCommand(
+            Question(),
+            Potato(),
+            Help(bot),
+            Funfact(),
+            RPC(),
+        )
 
         registerCategories()
         registerCommandsIntoCategory()
@@ -82,9 +76,15 @@ open class CommandManager(bot: Main.Companion) {
         }
     }
 
+    /**
+     * So basically this method created to call the all commands that use specific category.
+     * now we can get the commands with only calling this method,
+     * no need for stream 2 times like before & it's way faster for recalling
+     */
     private fun registerCommandsIntoCategory() {
         Categories.values().forEach { category ->
-            commandsByCategory[category] = commands.values.stream().filter { filter -> filter.category == category }.toList()
+            commandsByCategory[category] =
+                commands.values.stream().filter { filter -> filter.category == category }.toList()
         }
     }
 }
