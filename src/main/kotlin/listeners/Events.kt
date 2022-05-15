@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import java.io.FileNotFoundException
 
-class Events(private val bot: Main.Companion): ListenerAdapter() {
+class Events(bot: Main.Companion): ListenerAdapter() {
 
     private val commandManager = CommandManager(bot)
 

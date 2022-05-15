@@ -1,5 +1,6 @@
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
+import utilities.staffUtil.Roles
 import java.io.FileNotFoundException
 
 interface Command {
@@ -13,8 +14,11 @@ interface Command {
 
     val category: Categories
 
+    val roles: List<Roles>
+
     val description: String
 
     val isDisplay: Boolean
+
 
 }

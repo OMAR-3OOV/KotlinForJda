@@ -3,6 +3,7 @@ package commands
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
+import utilities.staffUtil.Roles
 import java.lang.NullPointerException
 
 class Potato: Command {
@@ -22,6 +23,8 @@ class Potato: Command {
         get() = "potato"
     override val category: Categories
         get() = Categories.FUN
+    override val roles: List<Roles>
+        get() = Roles.values().toList()
     override val description: String
         get() = "I will gives you unlimited potatos :3"
     override val isDisplay: Boolean

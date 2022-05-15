@@ -3,6 +3,7 @@ package commands.funCategory
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
+import utilities.staffUtil.Roles
 
 class Funfact: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
@@ -17,6 +18,9 @@ class Funfact: Command {
 
     override val category: Categories
         get() = Categories.FUN
+
+    override val roles: List<Roles>
+        get() = Roles.values().toList()
 
     override val description: String
         get() = "i will tell you a funfact"

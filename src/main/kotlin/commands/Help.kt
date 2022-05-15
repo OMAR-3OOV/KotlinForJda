@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
 import utilities.categoryUtil.CategoryManager
+import utilities.staffUtil.Roles
 import java.awt.Color
 import java.lang.NullPointerException
 import java.util.*
@@ -117,6 +118,8 @@ class Help(private val bot: Main.Companion) : Command {
         get() = "help"
     override val category: Categories
         get() = Categories.INFORMATION
+    override val roles: List<Roles>
+        get() = Roles.values().toList()
     override val description: String
         get() = "i will assistant you with everything you need"
     override val isDisplay: Boolean
