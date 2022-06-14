@@ -4,10 +4,11 @@ import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtil.Categories
 import utilities.staffUtil.Roles
+import javax.annotation.Nonnull
 
 class Question: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
-        event.channel.sendMessage("NO IM NOT GAY").queue()
+
     }
 
     override val help: String
@@ -22,6 +23,4 @@ class Question: Command {
         get() = "ask me if im gay"
     override val isDisplay: Boolean
         get() = true
-
-
 }

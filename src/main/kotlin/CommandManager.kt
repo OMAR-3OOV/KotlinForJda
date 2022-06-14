@@ -4,7 +4,7 @@ import com.sun.istack.Nullable
 import commands.Help
 import commands.Potato
 import commands.Question
-import commands.adminCategory.BotInfos
+import commands.adminCategory.Shutdown
 import commands.funCategory.Funfact
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -14,7 +14,6 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
-import kotlin.system.measureTimeMillis
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -34,10 +33,10 @@ open class CommandManager(bot: Main.Companion) {
             Help(bot),
             Funfact(),
             RPC(),
-            BotInfos()
+            Shutdown()
         )}
 
-        println(time)
+        println("Commands register time: ${time}")
 
         registerCategories()
         registerCommandsIntoCategory()

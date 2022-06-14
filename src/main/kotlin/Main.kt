@@ -26,8 +26,9 @@ class Main {
             builder.enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS)
             builder.disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
             builder.addEventListeners(Events(this), RPCEvent())
-            builder.build()
+            val jda = builder.build()
 
+            jda.upsertCommand("shutdown", "shutdown ${jda.selfUser.name}!w").queue()
             Logger().info("Bot has been built!")
         }
     }

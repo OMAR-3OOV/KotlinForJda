@@ -81,7 +81,7 @@ class Help(private val bot: Main.Companion) : Command {
                             .findFirst().get()
                     val description: StringBuilder = embed.descriptionBuilder
 
-                    embed.setTitle("${info.command} ( ${info.category.displayName} category) :")
+                    embed.setTitle("${info.command} ( ${info.category.displayName} category ) :")
                     description.append("**Explaining for the command:**").append("\n")
                     description.append("> **Description:** ${info.description}").append("\n")
                     description.append("> **How to use:** ${info.help}").append("\n")
@@ -103,7 +103,7 @@ class Help(private val bot: Main.Companion) : Command {
                 }
             }
         } catch (error: NullPointerException) {
-            embed.setTitle(" Something went wrong ( ${error.message} })")
+            embed.setTitle(" Something went wrong ( ${error.message} )")
             embed.setDescription("> Please report this issue to the developer, `Indra#4646`")
             embed.setColor(Color(255, 0, 0))
         }

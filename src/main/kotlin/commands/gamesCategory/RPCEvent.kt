@@ -1,82 +1,111 @@
 package commands.gamesCategory
 
+import dev.minn.jda.ktx.messages.Embed
+import gameUtilities.RPSUtility
+import net.dv8tion.jda.api.events.ShutdownEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import java.awt.Color
-import java.util.*
 
 class RPCEvent : ListenerAdapter() {
 
     override fun onButtonInteraction(event: ButtonInteractionEvent) {
-        if (!RPSData.rps.containsKey(event.user)) return
+        val user = event.user
 
-        val rpcGame = RPSData.rps[event.user]
+        if (RPSUtility.pending.containsKey(user)) {
 
-        val random = Random()
-        val nextStep: Int = random.nextInt(3)
+            val rps = RPSUtility.pending[user]
 
-        val rpc = arrayListOf("✊", "\uD83D\uDD90", "✌")
+            if (event.button.id.equals("accept-button-${rps!!.opponent!!.id}")) {
 
-        val geto = when (nextStep + 1) {
-            1 -> rpc[0]
-            2 -> rpc[1]
-            3 -> rpc[2]
-            else -> rpc[0]
+                val embed = rps.embed.also {
+                    it.setAuthor("${rps.sender.name} Against ${rps.opponent!!.name}")
+                    it.setColor(Color(200, 177, 99))
+                }
+
+                event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rps.rpsButtons(false))).queue()
+
+                rps.updatePendingRequest(true)
+            } else if (event.button.id.equals("deny-button-${rps.opponent!!.id}")) {
+
+                val embed = rps.embed.also {
+                    it.setAuthor("${rps.sender.name} Against ${rps.opponent?.name} ( Denied )")
+                    it.setColor(Color(200, 0, 0))
+                }
+
+                event.editMessageEmbeds(embed.build()).queue()
+                rps.updatePendingRequest(false)
+            }
         }
 
-        val userselection = event.interaction.button.label
-        val botselection = geto
+        if (RPSUtility.game.containsKey(event.message)) {
+            val rps = RPSUtility.game.get(event.message)
 
-        if (!rpcGame!!.isOpponentSelected) {
-            rpcGame.setOpponentSelection(botselection)
-            rpcGame.setOpponentSelect(true)
-        }
+            if (event.button.id.equals("${rps!!.gameId}-cancel") && (event.user.equals(rps.sender) || event.user.equals(rps.opponent))) {
+                rps.endTasks()
 
-        rpcGame.setSenderSelection(userselection)
-        rpcGame.setSenderSelect(true)
+                val embed = rps.embed
+                embed.clearFields()
+                embed.addField("Game Over", "${event.user.asMention} has been cancel the match!", false);
 
-        val description = rpcGame.embed.descriptionBuilder
+                event.deferEdit().setActionRows(ActionRow.of(event.message.buttons.map { it.asDisabled() })).setEmbeds(embed.build()).queue()
+                return
+            }
 
-        description.clear()
-        description.append(
-            rpcGame.gameMessage().toString()
-                .replace("-", "\uD83D\uDFE5")
-                .replace("|", "\uD83D\uDFE5")
-                .replace(".", "⬛")
-                .replace("P1", userselection)
-                .replace("P2", botselection)
-        )
+            val sender = rps.sender
+            val opponent = rps.opponent
 
-        if ((userselection == rpcGame.rock && botselection == rpcGame.scissors) ||
-            (userselection == rpcGame.paper && botselection == rpcGame.rock) ||
-            (userselection == rpcGame.scissors && botselection == rpcGame.paper)
-        ) // The user who request is winning
-        {
+            if (event.button.id == "emoji-${rps.gameId}-rock" || event.button.id == "emoji-${rps.gameId}-paper" || event.button.id == "emoji-${rps.gameId}-scissors")
+                if (event.user == sender || event.user == opponent) {
+                    val selection = event.interaction.button.id!!.replace("emoji-${rps.gameId}-", "")
 
-            rpcGame.embed.addField("> ${rpcGame.sender.name} Won!", "**${rpcGame.sender.name}** is winner & **${rpcGame.opponent.name}** is loser!", false)
-            rpcGame.embed.setColor(Color(0, 250, 0))
-        } else if ((userselection == rpcGame.rock && botselection == rpcGame.rock) ||
-            (userselection == rpcGame.paper && botselection == rpcGame.paper) ||
-            (userselection == rpcGame.scissors && botselection == rpcGame.scissors)
-        ) // both are draw
-        {
+                    if (user == sender) {
+                        rps.senderMove = RPSTypes.getTypeByName(selection)
+                    }
 
-            rpcGame.embed.addField("> Draw between ${rpcGame.sender.name} & ${rpcGame.opponent.name}!", "**${rpcGame.sender.name}** draw with & **${rpcGame.opponent.name}** in rpc round", false)
-            rpcGame.embed.setColor(Color(200, 150, 0))
-        } else {
-            rpcGame.embed.addField("> ${rpcGame.sender.name} Lost!", "**${rpcGame.sender.name}** is loser & **${rpcGame.opponent.name}** is winner!", false)
-            rpcGame.embed.setColor(Color(250, 0, 0))
-        } // the user who request losing
+                    if (user == opponent) {
+                        rps.opponentMove = RPSTypes.getTypeByName(selection)
+                    }
 
-        //message!!.editMessageEmbeds(rpcGame.embed.build()).setActionRows(ActionRow.of(event.button.asDisabled())).queue { q -> q.interaction }
+                    if (rps.isAllSelected) {
+                        val embed = rps.embed.also {
+                            it.setDescription(
+                                rps.embedMessage.toString()
+                                    .replace("-", "\uD83D\uDFE5")
+                                    .replace("|", "\uD83D\uDFE5")
+                                    .replace(".", "⬛")
+                                    .replace("P1", rps.senderMove.emoji.name)
+                                    .replace("P2", rps.opponentMove.emoji.name)
+                            )
+                        }
 
-        event.deferEdit().queue { queue ->
-            queue.editOriginalEmbeds(rpcGame.embed.build()).setActionRows(ActionRow.of(event.button.asDisabled()))
-                .queue { q -> q.interaction }
+                        event.deferEdit().setEmbeds(embed.build()).setActionRows(ActionRow.of(rps.rpsButtons(true)))
+                            .queue()
 
-            rpcGame.endGame()
+                        rps.gameEnd()
+
+                        if (rps.unlimitedLoop) {
+                            rps.rematch()
+                        }
+                    } else {
+                        val embed = rps.embed.also {
+                            it.setDescription(
+                                rps.embedMessage.toString()
+                                    .replace("-", "\uD83D\uDFE5")
+                                    .replace("|", "\uD83D\uDFE5")
+                                    .replace(".", "⬛")
+                                    .replace("P1", "◽")
+                                    .replace("P2", "◽")
+                            )
+                        }
+
+                        event.deferEdit().setEmbeds(embed.build()).queue()
+                    }
+                }
+
         }
     }
 
@@ -84,4 +113,32 @@ class RPCEvent : ListenerAdapter() {
 
     }
 
+    override fun onMessageDelete(event: MessageDeleteEvent) {
+        if (RPSUtility.game.entries.any { it.key.id.equals(event.messageId) }) {
+            val rps = RPSUtility.game.entries.find { it.key.id.equals(event.messageId) }?.value
+
+            rps!!.resendGameMessage()
+        }
+    }
+
+    override fun onShutdown(event: ShutdownEvent) {
+        println("Bot shutdown, ${event.timeShutdown}")
+        if (RPSUtility.games.isNotEmpty()) {
+            RPSUtility.games.forEach { game ->
+                run {
+                    game.unlimitedLoop = false
+                    val embed = Embed {
+                        description = game.getEmbedMessage().toString()
+                        field {
+                            name = "Game over!"
+                            value = "The bot has been shutdown, sorry for ending the game here, you can continue after the bot resume!"
+                            inline = false
+                        }
+                    }
+                    game.message.editMessageEmbeds(embed).queue()
+                    game.endTasks()
+                }
+            }
+        }
+    }
 }
