@@ -7,6 +7,7 @@ import commands.Question
 import commands.adminCategory.Shutdown
 import commands.funCategory.Funfact
 import commands.gamesCategory.RPC
+import commands.informationCategory.Twitter
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.staffUtil.Roles
 import utilities.staffUtil.RolesData
@@ -33,7 +34,8 @@ open class CommandManager(bot: Main.Companion) {
             Help(bot),
             Funfact(),
             RPC(),
-            Shutdown()
+            Shutdown(),
+            Twitter()
         )}
 
         println("Commands register time: ${time}")
