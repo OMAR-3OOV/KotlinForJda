@@ -4,10 +4,15 @@ import net.dv8tion.jda.api.entities.User
 import org.simpleyaml.configuration.file.YamlFile
 import java.io.File
 
-data class RolesData(val user: User, val role: Roles) {
+data class RolesData(val user: User) {
 
     private val file = File("System/roles.yml")
     private val config = YamlFile(file)
+
+    /**
+     * Role is default as [Roles.EVERYONE] , otherwise, you can change it by using setRole(Role) method
+     */
+    private var role: Roles = Roles.EVERYONE
 
     init {
         loadConfig()
@@ -23,12 +28,23 @@ data class RolesData(val user: User, val role: Roles) {
      */
     private fun loadConfig() {
         if (!file.exists()) {
+            if (!file.parentFile.exists()) {
+                file.parentFile.mkdirs()
+            }
             file.createNewFile()
             createNewDataForRoles()
             config.load(file)
         } else {
             config.load(file)
         }
+    }
+
+    fun getRole(): Roles {
+        return this.role
+    }
+
+    fun setRole(role: Roles) {
+        this.role = role
     }
 
     fun createNewDataForRoles() {
@@ -73,7 +89,7 @@ data class RolesData(val user: User, val role: Roles) {
      * return User so specific user, it used when there is error in the system so user can make his own data later
      */
     fun createNewDataForUser(user: User) {
-        val retrieve = ArrayList<String>(config.getStringList(role.key))
+        val retrieve = ArrayList<String>(config.getStringList(this.role!!.key))
 
         Roles.values().forEach { role ->
             if (role.key == this.role.key && !config.getStringList(role.key).contains(user.id)) {

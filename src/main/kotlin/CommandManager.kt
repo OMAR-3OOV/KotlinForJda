@@ -4,10 +4,10 @@ import com.sun.istack.Nullable
 import commands.Help
 import commands.Potato
 import commands.Question
+import commands.adminCategory.RolesManager
 import commands.adminCategory.Shutdown
 import commands.funCategory.Funfact
 import commands.gamesCategory.RPC
-import commands.informationCategory.Twitter
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.staffUtil.Roles
 import utilities.staffUtil.RolesData
@@ -35,7 +35,7 @@ open class CommandManager(bot: Main.Companion) {
             Funfact(),
             RPC(),
             Shutdown(),
-            Twitter()
+            RolesManager()
         )}
 
         println("Commands register time: ${time}")
@@ -53,7 +53,9 @@ open class CommandManager(bot: Main.Companion) {
      */
     @Throws(NullPointerException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
-        val rolesData = RolesData(event.author, Roles.EVERYONE)
+        val rolesData = RolesData(event.author)
+        rolesData.setRole(Roles.EVERYONE)
+
         val split: List<String> =
             event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
         val command: String = split[0].lowercase(Locale.getDefault())
