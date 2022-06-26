@@ -47,7 +47,7 @@ class Help(private val bot: Main.Companion) : Command {
                  */
 
                 commandManager.commandsByCategory.forEach { (category, commands) ->
-                    description.append("**${category.displayName}**").append("\n").append(
+                    description.append("${category.icon} **${category.displayName}**").append("\n").append(
                         commands.stream()
                             .collect(Collectors.toList()).chunked(4).stream()
                             .map { it.joinToString(" / ") { value -> "`${value.command}`" } }
