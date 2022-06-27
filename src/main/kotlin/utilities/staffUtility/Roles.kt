@@ -1,4 +1,4 @@
-package utilities.staffUtil
+package utilities.staffUtility
 
 import java.awt.Color
 

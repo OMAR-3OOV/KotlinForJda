@@ -1,4 +1,4 @@
-package utilities.staffUtil
+package utilities.staffUtility
 
 import net.dv8tion.jda.api.entities.User
 import org.simpleyaml.configuration.file.YamlFile
@@ -24,13 +24,14 @@ data class RolesData(val user: User) {
     }
 
     /**
-     * Load the config system
+     * Load the [config] system and create if the file not created yet!
      */
     private fun loadConfig() {
         if (!file.exists()) {
             if (!file.parentFile.exists()) {
                 file.parentFile.mkdirs()
             }
+
             file.createNewFile()
             createNewDataForRoles()
             config.load(file)
@@ -47,6 +48,10 @@ data class RolesData(val user: User) {
         this.role = role
     }
 
+    /**
+     * This method will create the sections for the roles, so it will be existing but empty
+     * Data getting from [Roles]
+     */
     fun createNewDataForRoles() {
         Roles.values().forEach { role ->
             if (config.getStringList(role.key).isNullOrEmpty()) {
@@ -57,9 +62,11 @@ data class RolesData(val user: User) {
     }
 
     /**
-     * Creating data user automatically!
+     * This method will create a new [user] data & add the user to Default selection [Roles.EVERYONE]
      */
     fun createNewDataForUser() {
+        if (this.user.isBot) return
+        if (this.user.isSystem) return
         Roles.values().forEach { role ->
             val retrieve = ArrayList<String>(config.getStringList(role.key))
 
@@ -86,7 +93,9 @@ data class RolesData(val user: User) {
     }
 
     /**
-     * return User so specific user, it used when there is error in the system so user can make his own data later
+     * Create new specific data user , till now it's useless, but maybe in future it going to be useful with upgrades
+     *
+     * @param user related to specific user the going to be mentioned when the method get use.
      */
     fun createNewDataForUser(user: User) {
         val retrieve = ArrayList<String>(config.getStringList(this.role!!.key))
@@ -106,25 +115,48 @@ data class RolesData(val user: User) {
     }
 
     /**
-     * User data checker!
+     * Add the [user] to the role section
+     */
+    fun addRole(role: Roles) {
+        val retrieve = ArrayList<String>(this.config.getStringList(role.key))
+        val usersList = ArrayList<String>()
+        usersList.addAll(retrieve)
+        usersList.add(this.user.id)
+
+        config.set(role.key, usersList)
+        config.save()
+    }
+
+    /**
+     * remove [user] from role section
+     */
+    fun removeRole(role: Roles) {
+        val retrieve = ArrayList<String>(this.config.getStringList(role.key))
+        retrieve.remove(this.user.id)
+
+        config.set(role.key, retrieve)
+        config.save()
+    }
+
+    /**
+     * [user] data checker!
      */
     private fun isUserExist(): Boolean {
-        Roles.values().forEach { role ->
-            if (config.isList(role.key)) {
-                return config.getList(role.key).contains(user.id)
+        for (role in Roles.values()) {
+            if (!config.getStringList(role.key).contains(this.user.id)) continue else {
+                return true
             }
         }
-
         return false
     }
 
     /**
-     * User data getter
+     * [user] data getter
      */
     fun getUserRole(): Roles {
         if (isUserExist()) {
-            Roles.values().forEach { role ->
-                if (config.isList(role.key) && config.getList(role.key).contains(user.id)) {
+            for (role in Roles.values()) {
+                if (config.isList(role.key) && config.getStringList(role.key).contains(this.user.id)) {
                     return role
                 }
             }
@@ -132,7 +164,10 @@ data class RolesData(val user: User) {
         return Roles.EVERYONE
     }
 
-    fun getConfig(): YamlFile {
+    /**
+     * related to the [config]
+     */
+    fun config(): YamlFile {
         return config
     }
 }

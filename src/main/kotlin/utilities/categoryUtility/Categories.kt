@@ -1,6 +1,4 @@
-package utilities.categoryUtil
-
-import java.lang.NullPointerException
+package utilities.categoryUtility
 
 enum class Categories (val key: String,val displayName: String,val description: String,val icon: String,val id: Int) {
 

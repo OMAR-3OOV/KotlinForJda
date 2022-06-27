@@ -1,4 +1,4 @@
-package utilities.categoryUtil
+package utilities.categoryUtility
 
 import Command
 
