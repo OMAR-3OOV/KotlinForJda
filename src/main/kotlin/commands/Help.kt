@@ -5,15 +5,12 @@ import CommandManager
 import Main
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import utilities.categoryUtil.CategoryManager
-import utilities.staffUtil.Roles
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 import java.awt.Color
 import java.lang.NullPointerException
 import java.util.*
 import java.util.stream.Collectors
-import java.util.stream.Stream
-import kotlin.streams.toList
 
 class Help(private val bot: Main.Companion) : Command {
 

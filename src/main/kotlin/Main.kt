@@ -1,3 +1,4 @@
+import commands.funCategory.MessengerEvent
 import commands.gamesCategory.RPCEvent
 import listeners.Events
 import net.dv8tion.jda.api.JDABuilder
@@ -7,6 +8,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.security.auth.login.LoginException
+import kotlin.collections.ArrayList
 
 class Main {
     companion object {
@@ -17,7 +19,8 @@ class Main {
             val gateways = arrayListOf (
                 GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS,
                 GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_TYPING,
-                GatewayIntent.GUILD_PRESENCES,
+                GatewayIntent.GUILD_PRESENCES, GatewayIntent.DIRECT_MESSAGES,
+                GatewayIntent.DIRECT_MESSAGE_REACTIONS
             )
 
             val token = "ODk3MTgzNDAxOTM5OTc2MjEz.G5fGl_.eYZrPlXSCpzFUH07VI8OlhauEWuIVKJRoWFTJg"
@@ -25,8 +28,8 @@ class Main {
             val builder = JDABuilder.create(token, gateways)
             builder.enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS)
             builder.disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
-            builder.addEventListeners(Events(this), RPCEvent())
-            val jda = builder.build()
+            builder.addEventListeners(Events(this), RPCEvent(), MessengerEvent())
+            val jda = builder.build().awaitReady()
 
             jda.upsertCommand("shutdown", "shutdown ${jda.selfUser.name}!w").queue()
             Logger().info("Bot has been built!")

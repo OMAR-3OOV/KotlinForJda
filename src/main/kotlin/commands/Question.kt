@@ -2,9 +2,8 @@ package commands
 
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import utilities.staffUtil.Roles
-import javax.annotation.Nonnull
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 
 class Question: Command {
     override fun handle(args: List<String>, event: MessageReceivedEvent) {

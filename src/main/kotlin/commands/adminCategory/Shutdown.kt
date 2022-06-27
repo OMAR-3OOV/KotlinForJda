@@ -4,9 +4,8 @@ import Command
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import net.dv8tion.jda.api.interactions.commands.build.Commands
-import utilities.categoryUtil.Categories
-import utilities.staffUtil.Roles
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 
 class Shutdown: Command, ListenerAdapter() {
 

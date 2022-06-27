@@ -2,8 +2,8 @@ package commands
 
 import Command
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import utilities.staffUtil.Roles
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 import java.lang.NullPointerException
 
 class Potato: Command {
