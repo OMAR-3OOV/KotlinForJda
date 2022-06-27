@@ -1,14 +1,12 @@
 package commands.gamesCategory
 
 import Command
-import dev.minn.jda.ktx.messages.Embed
 import gameUtilities.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import utilities.staffUtil.Roles
-import java.util.*
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 

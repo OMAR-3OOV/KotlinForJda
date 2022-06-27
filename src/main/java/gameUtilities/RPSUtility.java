@@ -100,7 +100,10 @@ public class RPSUtility {
     }
 
     /**
-     * create new match, NOTE: this method only used one time to start the game.
+     * This method is where to create new RPS Game
+     * between the user who send the request {@link #sender} & the user who mentioned {@link #Opponent}
+     *
+     * @NOTE : this method only used one time to start the game.
      */
     public void createNewGame() {
 
