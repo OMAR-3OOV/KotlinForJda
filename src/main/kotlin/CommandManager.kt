@@ -1,5 +1,5 @@
-import utilities.categoryUtil.Categories
-import utilities.categoryUtil.CategoryManager
+import utilities.categoryUtility.Categories
+import utilities.categoryUtility.CategoryManager
 import com.sun.istack.Nullable
 import commands.Help
 import commands.Potato
@@ -7,11 +7,13 @@ import commands.Question
 import commands.adminCategory.RolesManager
 import commands.adminCategory.Shutdown
 import commands.funCategory.Funfact
+import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.staffUtil.Roles
-import utilities.staffUtil.RolesData
+import utilities.messengerUtility.MessengerManager
+import utilities.staffUtility.RolesData
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -35,10 +37,11 @@ open class CommandManager(bot: Main.Companion) {
             Funfact(),
             RPC(),
             Shutdown(),
-            RolesManager()
+            RolesManager(),
+            PrivateMessenger()
         )}
 
-        println("Commands register time: ${time}")
+        println("Commands register time: $time")
 
         registerCategories()
         registerCommandsIntoCategory()
@@ -53,8 +56,8 @@ open class CommandManager(bot: Main.Companion) {
      */
     @Throws(NullPointerException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
+        if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.textChannel) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
         val rolesData = RolesData(event.author)
-        rolesData.setRole(Roles.EVERYONE)
 
         val split: List<String> =
             event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
