@@ -56,7 +56,7 @@ class RPC : Command {
                 event.jda.getUsersByName(opponent, true).stream().map { m -> m.id }.collect(Collectors.joining())
             }
 
-            val target = event.jda.getUserById(opponent)
+            val target = event.guild.retrieveMemberById(opponent).complete().user
             val rps = RPSUtility(user, target, event.guild, event.textChannel, embed)
 
             if (args.size > 1) {

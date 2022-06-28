@@ -22,12 +22,6 @@ class Events(bot: Main.Companion): ListenerAdapter() {
         Main.Logger().info("Hey master, Im totally ready & im currently in ${event.guildTotalCount} Guilds right now :3!")
     }
 
-    override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
-        if (event.channelType.isGuild) {
-            event.retrieveMessage().queue { q -> q.addReaction(event.reactionEmote.emoji).queue() }
-        }
-    }
-
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channelType.isGuild) {
             val prefix = "r?"

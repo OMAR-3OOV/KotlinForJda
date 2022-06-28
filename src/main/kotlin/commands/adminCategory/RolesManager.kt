@@ -29,7 +29,7 @@ class RolesManager: Command {
                         userMentioned =
                             userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
                                 .replace("&", "").replace(">", "")
-                        user = event.guild.getMemberById(userMentioned)!!.user
+                        user = event.guild.retrieveMemberById(userMentioned).complete().user
                     } else {
                         event.channel.sendMessage("Sorry, i can't decide did you type `${handler[1]}` please use r?help role")
                             .queue()

@@ -1,14 +1,17 @@
 import commands.funCategory.MessengerEvent
 import commands.gamesCategory.RPCEvent
+import dev.minn.jda.ktx.jdabuilder.light
 import listeners.Events
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.requests.GatewayIntent
+import net.dv8tion.jda.api.utils.AllowedMentions
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
+import java.util.concurrent.ScheduledExecutorService
 import javax.security.auth.login.LoginException
-import kotlin.collections.ArrayList
 
 class Main {
     companion object {
@@ -25,11 +28,13 @@ class Main {
 
             val token = "ODk3MTgzNDAxOTM5OTc2MjEz.G5fGl_.eYZrPlXSCpzFUH07VI8OlhauEWuIVKJRoWFTJg"
 
-            val builder = JDABuilder.create(token, gateways)
-            builder.enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS)
-            builder.disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
-            builder.addEventListeners(Events(this), RPCEvent(), MessengerEvent())
-            val jda = builder.build().awaitReady()
+            val jda = light(token, enableCoroutines = true, intents = gateways) {
+                enableCache(CacheFlag.ACTIVITY, CacheFlag.ONLINE_STATUS, CacheFlag.ROLE_TAGS, CacheFlag.MEMBER_OVERRIDES)
+                disableCache(EnumSet.of(CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
+
+                addEventListeners(Events(Main), RPCEvent(), MessengerEvent())
+            }.awaitReady()
+            AllowedMentions.setDefaultMentions(EnumSet.of(Message.MentionType.USER))
 
             jda.upsertCommand("shutdown", "shutdown ${jda.selfUser.name}!w").queue()
             Logger().info("Bot has been built!")
