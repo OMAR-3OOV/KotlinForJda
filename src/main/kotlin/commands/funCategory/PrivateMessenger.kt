@@ -1,6 +1,7 @@
 package commands.funCategory
 
 import Command
+import dev.minn.jda.ktx.coroutines.await
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.TextChannel
@@ -11,6 +12,7 @@ import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.Roles
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 /**
  * This command is private and only few people who can access it.
@@ -33,12 +35,16 @@ class PrivateMessenger : Command {
             if (matcher.find()) {
                 userMentioned = userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
                     .replace("&", "").replace(">", "")
+            } else if (Pattern.compile("\\d+").matcher(userMentioned).find()) {
+                userMentioned = userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
+                    .replace("&", "").replace(">", "")
             } else {
-                event.channel.sendMessage(":x: | Sorry i can't decide what ${userMentioned} means! **Make sure to mention a user or use the user id**").queue()
+                    event.channel.sendMessage(":x: | Sorry i can't decide what ${userMentioned} means! **Make sure to mention a user or use the user id**").queue()
                 return
             }
 
-            val user: User = event.guild.getMemberById(userMentioned)!!.user
+            val user = event.guild.retrieveMemberById(userMentioned).complete().user
+
             val channel: TextChannel = event.textChannel
 
             // There is no meaning off messaging bot at all because he will not respond!
@@ -48,6 +54,10 @@ class PrivateMessenger : Command {
             }
 
             val messenger = MessengerManager(user, channel)
+
+            if (MessengerManager.dm.containsKey(event.author) && MessengerManager.messenger.containsKey(user)) {
+                event.channel.sendMessage(":x: | You're already with ${MessengerManager.dm[event.author]!!.getter.name} in messenger!").queue()
+            }
 
             messenger.setSender(event.author)
             messenger.messengerStart()
