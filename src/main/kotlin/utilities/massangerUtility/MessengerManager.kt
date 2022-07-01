@@ -1,8 +1,6 @@
 package utilities.messengerUtility
 
-import dev.minn.jda.ktx.events.CoroutineEventListener
 import dev.minn.jda.ktx.events.onButton
-import dev.minn.jda.ktx.interactions.components.button
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
@@ -10,16 +8,12 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageAction
-import net.dv8tion.jda.api.requests.restaction.ThreadChannelAction
 import java.awt.Color
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.util.function.BooleanSupplier
 import java.util.stream.Collectors
 
 data class MessengerManager(val getter: User, val channel: TextChannel) {
@@ -29,7 +23,6 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
     var message: Message? = null
     val jda: JDA = channel.jda
 
-    var guild: Guild = channel.guild
     var pause: Boolean = false
     var isMessage: Boolean = false
 
@@ -95,14 +88,14 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
          * This hashmap to store the thread channel from the message that have been created the thread, so this can help to get the information
          *
          * @param Message related to the [message]
-         * @param ThreadChannel related to the [createthreadMessages]
+         * @param ThreadChannel related to the [createThreadMessages]
          */
         val threadMessages: HashMap<Long, ThreadChannel> = HashMap()
 
         /**
          * This hashmap to store the message that created the thread, so if the thread deleted it will automatically create new thread
          *
-         * @param ThreadChannel related to the thread that [message] created it from [createthreadMessages]
+         * @param ThreadChannel related to the thread that [message] created it from [createThreadMessages]
          * @param Message related to [message]
          */
         val threadManager: HashMap<ThreadChannel, MessengerManager> = HashMap()
@@ -132,7 +125,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
 
                 setMessage(controlPanel().complete())
                 managerMessage[message!!.idLong] = this
-                createthreadMessages(message!!)!!.queue { thread ->
+                createThreadMessages(message!!)!!.queue { thread ->
                     setThread(thread)
                     thread.sendMessage("${this.sender!!.asMention} Now you can start chatting with ${this.getter.name} here")
                         .queueAfter(2, TimeUnit.SECONDS)
@@ -483,7 +476,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
     /**
      * This method used to create new thread channel to [Control panel message][MessengerManager.message]
      */
-    fun createthreadMessages(message: Message): RestAction<ThreadChannel>? {
+    fun createThreadMessages(message: Message): RestAction<ThreadChannel>? {
         val newThread = this.channel.createThreadChannel("${getter.name} Messenger", message.id)
         return newThread
     }
