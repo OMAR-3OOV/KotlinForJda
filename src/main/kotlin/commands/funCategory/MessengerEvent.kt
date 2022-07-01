@@ -1,18 +1,13 @@
 package commands.funCategory
 
 import net.dv8tion.jda.api.entities.ChannelType
-import net.dv8tion.jda.api.entities.ThreadChannel
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent
-import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent
-import net.dv8tion.jda.api.events.thread.GenericThreadEvent
-import net.dv8tion.jda.api.events.thread.ThreadHiddenEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import net.dv8tion.jda.api.interactions.components.LayoutComponent
 import utilities.messengerUtility.MessengerManager
-import java.util.concurrent.TimeUnit
 
 class MessengerEvent: ListenerAdapter() {
 
@@ -22,7 +17,7 @@ class MessengerEvent: ListenerAdapter() {
         if (event.isFromType(ChannelType.PRIVATE)) {
             if (!MessengerManager.messenger.containsKey(event.author)) return
             if (!MessengerManager.messenger[event.author]!!.started) return
-            if (event.message.contentRaw.contains("r?")) return event.message.addReaction("❌").queue()
+            if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌")).queue()
 
             val messenger: MessengerManager = MessengerManager.messenger[event.author]!!
             val message = event.message
@@ -33,7 +28,7 @@ class MessengerEvent: ListenerAdapter() {
             val managerMessage = MessengerManager.dm[event.author]!!.message
             if (MessengerManager.threadMessages[managerMessage!!.idLong]!! != event.threadChannel) return println("WRONG!")
             if (!MessengerManager.dm[event.author]!!.started) return
-            if (event.message.contentRaw.contains("r?")) return event.message.addReaction("❌").queue()
+            if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌")).queue()
 
             val messenger: MessengerManager = MessengerManager.dm[event.author]!!
             val message = event.message
@@ -75,7 +70,7 @@ class MessengerEvent: ListenerAdapter() {
 
                 val msg = mm.controlPanel().complete()
 
-                mm.createthreadMessages(msg)!!.queue {thread ->
+                mm.createThreadMessages(msg)!!.queue { thread ->
                     thread.sendMessage("${mm.sender!!.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
                         .queue()
                     mm.setThread(thread)

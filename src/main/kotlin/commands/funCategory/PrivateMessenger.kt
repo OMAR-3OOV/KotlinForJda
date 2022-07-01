@@ -1,18 +1,17 @@
 package commands.funCategory
 
 import Command
-import dev.minn.jda.ktx.coroutines.await
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.TextChannel
-import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
 import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.Roles
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 
 /**
  * This command is private and only few people who can access it.
@@ -64,6 +63,10 @@ class PrivateMessenger : Command {
         } catch (userErr: IndexOutOfBoundsException) {
             event.channel.sendMessage(":x: | This user is not exist or wrong!").queue()
         }
+    }
+
+    override fun onSlashCommand(event: SlashCommandInteractionEvent) {
+
     }
 
     override val help: String
