@@ -2,12 +2,13 @@ package commands.adminCategory
 
 import Command
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import utilities.categoryUtility.Categories
 import utilities.staffUtility.Roles
 
-class Shutdown: Command, ListenerAdapter() {
+class Shutdown: Command {
 
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
         if (args.isEmpty()){
@@ -15,11 +16,8 @@ class Shutdown: Command, ListenerAdapter() {
         }
     }
 
-    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        if (event.name.equals("shutdown")) {
-            event.reply("Bot is shutdown").setEphemeral(true).queue()
-            event.jda.shutdown()
-        }
+    override fun onSlashCommand(event: SlashCommandInteractionEvent) {
+        TODO("Not yet implemented")
     }
 
     override val help: String

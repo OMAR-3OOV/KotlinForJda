@@ -4,6 +4,8 @@ import Command
 import CommandManager
 import Main
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
 import utilities.staffUtility.Roles
@@ -108,7 +110,9 @@ class Help(private val bot: Main.Companion) : Command {
         event.channel.sendMessageEmbeds(embed.build()).queue()
     }
 
-
+    override fun onSlashCommand(event: SlashCommandInteractionEvent) {
+        TODO("Not yet implemented")
+    }
     override val help: String
         get() = "$command <command>"
     override val command: String

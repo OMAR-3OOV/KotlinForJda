@@ -2,11 +2,9 @@ import utilities.categoryUtility.Categories
 import utilities.categoryUtility.CategoryManager
 import com.sun.istack.Nullable
 import commands.Help
-import commands.Potato
 import commands.Question
 import commands.adminCategory.RolesManager
 import commands.adminCategory.Shutdown
-import commands.funCategory.Funfact
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -32,9 +30,7 @@ open class CommandManager(bot: Main.Companion) {
 
         val (task, time) = measureTimedValue { addCommand(
             Question(),
-            Potato(),
             Help(bot),
-            Funfact(),
             RPC(),
             Shutdown(),
             RolesManager(),
