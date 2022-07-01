@@ -4,6 +4,8 @@ import Command
 import gameUtilities.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
 import utilities.staffUtility.Roles
@@ -61,12 +63,17 @@ class RPC : Command {
 
             if (args.size > 1) {
                 if (args[1].equals("-r")) {
-                    rps.unlimitedLoop = true
+                    rps.isUnlimitedLoop = true
                 }
             }
         } else {
             val rps = RPSUtility(user, null, event.guild, event.textChannel, embed)
         }
+    }
+
+    override fun onSlashCommand(event: SlashCommandInteractionEvent
+    ) {
+        TODO("Not yet implemented")
     }
 
 

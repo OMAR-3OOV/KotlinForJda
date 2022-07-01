@@ -1,6 +1,6 @@
 package commands.gamesCategory
 
-import net.dv8tion.jda.api.entities.Emoji
+import net.dv8tion.jda.api.entities.emoji.Emoji
 
 enum class RPSTypes (val key: String, val displayName: String, val id: Int, val emoji: Emoji) {
     ROCK("rock", "Rock", 0, Emoji.fromUnicode("✊")),

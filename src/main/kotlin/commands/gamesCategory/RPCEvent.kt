@@ -87,7 +87,7 @@ class RPCEvent : ListenerAdapter() {
 
                         rps.gameEnd()
 
-                        if (rps.unlimitedLoop) {
+                        if (rps.isUnlimitedLoop) {
                             rps.rematch()
                         }
                     } else {
@@ -126,7 +126,7 @@ class RPCEvent : ListenerAdapter() {
         if (RPSUtility.games.isNotEmpty()) {
             RPSUtility.games.forEach { game ->
                 run {
-                    game.unlimitedLoop = false
+                    game.isUnlimitedLoop = false
                     val embed = Embed {
                         description = game.getEmbedMessage().toString()
                         field {

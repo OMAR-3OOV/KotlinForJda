@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * All things we need to create new RPS Game: Users ID ( sender, Opponent ) / Guild / Channel / Message ( Message, Embed )
@@ -23,7 +24,7 @@ public class RPSUtility {
     /* System requirement to game data */
     private final User sender;
     @Nullable
-    private User Opponent;
+    private User Opponent; // if there is no users mentioned it going to be the bot
     private final Guild guild;
     private final TextChannel channel;
     private final EmbedBuilder embed;
@@ -38,8 +39,18 @@ public class RPSUtility {
     private int rounds = 1; // Default
     private boolean unlimitedLoop = false; // Default
 
+    /**
+     *
+     */
     public static final List<RPSUtility> games = new ArrayList<>();
+    /**
+     *
+     */
     public static final HashMap<Message, RPSUtility> game = new HashMap<>();
+    /**
+     * This Hashmap to put the {@link #Opponent} in [Accept/Deny] the request challenge.
+     * it will be ON only if there is an opponent
+     */
     public static final HashMap<User, RPSUtility> pending = new HashMap<>();
     private boolean pendingRequest = false;
     private User winner;
@@ -81,7 +92,13 @@ public class RPSUtility {
             }
 
             generateNewGameId();
+
+            /*
+            * To be clearly here, I said in Opponent it going to set the bot as a opponent if the opponent is null
+            * but the think is that the opponent will NOT to set till the createNewGame(); method runs
+            */
             pending.put(this.Opponent, this);
+
             createNewGame();
             games.add(this);
 
@@ -180,26 +197,23 @@ public class RPSUtility {
         if (this.getOpponent() != null) {
             assert this.Opponent != null;
             if (winningMove().equals(0)) {
-                this.embed.addField(
-                        "> " + this.sender.getName() + " Won!",
-                        "**" + this.sender.getName() + "** is winner against **" + this.Opponent.getName() + "**!",
-                        false
-                );
+                String top_content = new String("> Won!");
+                String button_content = new String("**%s** Won against **%p**!").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+
+                this.embed.addField(top_content, button_content, false);
                 setWinner(this.sender);
                 this.embed.setColor(new Color(0, 250, 0));
             } else if (winningMove().equals(1)) {
-                this.embed.addField(
-                        "> Draw!",
-                        this.sender.getName() + " & " + this.Opponent.getName() + " Draws",
-                        false
-                );
+                String top_content = new String("> Draw!");
+                String button_content = new String("**%s** & **%p** Draws").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+
+                this.embed.addField(top_content, button_content, false);
                 this.embed.setColor(new Color(200, 150, 0));
             } else if (winningMove().equals(2)) {
-                this.embed.addField(
-                        "> " + this.sender.getName() + " Lost!",
-                        "**" + this.sender.getName() + "** is loser against **" + this.Opponent.getName() + "**!",
-                        false
-                );
+                String top_content = new String("> Lost!");
+                String button_content = new String("**%s** is lost against **%p**!").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+                this.embed.addField(top_content, button_content, false);
+
                 setWinner(this.Opponent);
                 this.embed.setColor(new Color(250, 0, 0));
             } else if (winningMove().equals(3)) {
@@ -241,7 +255,10 @@ public class RPSUtility {
         return this.winner;
     }
 
-    public void setWinner(User winner) {
+    /**
+     * @param winner to set the {@link #winner}
+     */
+    public void setWinner(@NotNull User winner) {
         this.winner = winner;
     }
 
@@ -281,6 +298,9 @@ public class RPSUtility {
         updateMessage(true);
     }
 
+    /**
+     * @return related to {@link #embed Embed Message}
+     */
     public StringBuilder getEmbedMessage() {
         StringBuilder gui = new StringBuilder();
 
@@ -297,6 +317,11 @@ public class RPSUtility {
         return gui;
     }
 
+    /**
+     * @param sender related to {@link #sender}
+     * @param opponent related to {@link #Opponent}
+     * @return related to {@link #embed Embed Message}
+     */
     public StringBuilder getEmbedMessage(User sender, User opponent) {
         StringBuilder gui = new StringBuilder();
 
@@ -312,6 +337,10 @@ public class RPSUtility {
         return gui;
     }
 
+    /**
+     * @param isDisable to disable the buttons
+     * @return related to {@link Button}
+     */
     public List<Button> rpsButtons(boolean isDisable) {
         List<Button> bts = new ArrayList<>();
 
@@ -328,6 +357,7 @@ public class RPSUtility {
 
     /**
      * Updating the message to currently info for the game stats.
+     * @param isRematch to check if {@link #rematch()}
      */
     public void updateMessage(boolean isRematch) {
         EmbedBuilder embed = this.embed;
@@ -359,6 +389,7 @@ public class RPSUtility {
 
     /**
      * Update the pending request.
+     * @param bool to update the pending request
      */
     public void updatePendingRequest(boolean bool) {
         if (bool) {
@@ -382,14 +413,23 @@ public class RPSUtility {
         pending.remove(this.getOpponent());
     }
 
+    /**
+     * @return related to {@link #gameId Game ID}
+     */
     public int getGameId() {
         return gameId;
     }
 
+    /**
+     * @return related to {@link RPSUtility}
+     */
     public HashMap<Message, RPSUtility> getGame() {
         return game;
     }
 
+    /**
+     * @return related to {@link #pending}
+     */
     public HashMap<User, RPSUtility> getPending() {
         return pending;
     }
@@ -429,10 +469,16 @@ public class RPSUtility {
         return 3;
     }
 
+    /**
+     * @return related to {@link #rounds}
+     */
     public int getRounds() {
         return rounds;
     }
 
+    /**
+     * @param rounds to set {@link #rounds}
+     */
     public void setRounds(int rounds) {
 
         if (rounds < 1) {
@@ -442,34 +488,58 @@ public class RPSUtility {
         this.rounds = rounds;
     }
 
-    public boolean getUnlimitedLoop() {
+    /**
+     * @return related to {@link #unlimitedLoop}
+     */
+    public boolean isUnlimitedLoop() {
         return this.unlimitedLoop;
     }
 
+    /**
+     * @param bool to set {@link #unlimitedLoop}
+     */
     public void setUnlimitedLoop(boolean bool) {
         this.unlimitedLoop = bool;
     }
 
+    /**
+     * @return related to {@link #sender}
+     */
     public User getSender() {
         return sender;
     }
 
+    /**
+     * @return related to {@link #Opponent}
+     */
     public @Nullable User getOpponent() {
         return Opponent;
     }
 
+    /**
+     * @return related to {@link #guild}
+     */
     public Guild getGuild() {
         return guild;
     }
 
+    /**
+     * @return related to {@link #channel}
+     */
     public TextChannel getChannel() {
         return channel;
     }
 
+    /**
+     * @return related to {@link #message}
+     */
     public @NotNull Message getMessage() {
         return message;
     }
 
+    /**
+     * @return related to {@link #embed}
+     */
     public EmbedBuilder getEmbed() {
         return embed;
     }
@@ -488,10 +558,17 @@ public class RPSUtility {
         return this.opponentMove != null;
     }
 
+    /**
+     * @param choice related to {@link RPSTypes}
+     * @return checking if the opponent select the move
+     */
     public boolean isCheckerSelect(RPSTypes choice) {
         return choice != null;
     }
 
+    /**
+     * @return related to both of users if they selected or not! {@link #senderMove} & {@link #opponentMove}
+     */
     public boolean isAllSelected() {
         return (isSenderSelect() && isOpponentSelect());
     }
@@ -525,25 +602,27 @@ public class RPSUtility {
     }
 
     /**
-     * Check if the Opponent is already in another game or not.
+     * Checking if the {@link #Opponent} is already in game.
+     * @return boolean
      */
     private boolean isOpponentInGame() {
-        System.out.println(game.entrySet().stream().anyMatch(all -> {
-            assert all.getValue().getOpponent() != null;
-            return all.getValue().getOpponent().equals(this.Opponent);
-        }));
-
         return game.entrySet().stream().anyMatch(all -> {
             assert all.getValue().getOpponent() != null;
             return all.getValue().getOpponent().equals(this.Opponent);
         }); // true means the Opponents in game, otherwise, false
     }
 
+    /**
+     * Checking if the {@link #sender} is already in game.
+     * @return boolean
+     */
     private boolean isSenderInGame() {
-        System.out.println(game.entrySet().stream().anyMatch(all -> all.getValue().getSender().equals(this.sender)));
         return game.entrySet().stream().anyMatch(all -> all.getValue().getSender().equals(this.sender));
     }
 
+    /**
+     * The {@link #gameId} generator, every game is running should have a different ID, it will be really low chance to get more than 1 game with same {@link #gameId}
+     */
     private void generateNewGameId() {
         Random random = new Random();
         int minimum = 100000;
