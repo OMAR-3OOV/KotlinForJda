@@ -42,7 +42,7 @@ class Main {
                 setChunkingFilter(ChunkingFilter.ALL)
                 addEventListeners(Events(Main), RPCEvent(), MessengerEvent())
             }.awaitReady()
-            
+
             AllowedMentions.setDefaultMentions(EnumSet.of(Message.MentionType.USER))
 
             jda.updateCommands()
