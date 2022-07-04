@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * All things we need to create new RPS Game: Users ID ( sender, Opponent ) / Guild / Channel / Message ( Message, Embed )
@@ -34,7 +33,6 @@ public class RPSUtility {
     private int gameId;
     private RPSTypes senderMove;
     private RPSTypes opponentMove;
-    private RPSTypes botMove;
 
     private int rounds = 1; // Default
     private boolean unlimitedLoop = false; // Default
@@ -56,6 +54,13 @@ public class RPSUtility {
     private User winner;
     /* Class methods */
 
+    /**
+     * @param sender related to who send the request.
+     * @param Opponent related to who mentioned in the request ( if there is not mention it will set to bot).
+     * @param guild related to the guild that the request come from
+     * @param channel related to the channel that the request come from
+     * @param embed related to {@link #embed}
+     */
     public RPSUtility(User sender, @Nullable User Opponent, Guild guild, TextChannel channel, @NotNull EmbedBuilder embed) {
         this.sender = sender;
 
@@ -197,21 +202,21 @@ public class RPSUtility {
         if (this.getOpponent() != null) {
             assert this.Opponent != null;
             if (winningMove().equals(0)) {
-                String top_content = new String("> Won!");
-                String button_content = new String("**%s** Won against **%p**!").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+                String top_content = "> Won!";
+                String button_content = "**%s** Won against **%p**!".replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
 
                 this.embed.addField(top_content, button_content, false);
                 setWinner(this.sender);
                 this.embed.setColor(new Color(0, 250, 0));
             } else if (winningMove().equals(1)) {
-                String top_content = new String("> Draw!");
-                String button_content = new String("**%s** & **%p** Draws").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+                String top_content = "> Draw!";
+                String button_content = "**%s** & **%p** Draws".replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
 
                 this.embed.addField(top_content, button_content, false);
                 this.embed.setColor(new Color(200, 150, 0));
             } else if (winningMove().equals(2)) {
-                String top_content = new String("> Lost!");
-                String button_content = new String("**%s** is lost against **%p**!").replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
+                String top_content = "> Lost!";
+                String button_content = "**%s** is lost against **%p**!".replace("%s", this.sender.getName()).replace("%p", this.Opponent.getName());
                 this.embed.addField(top_content, button_content, false);
 
                 setWinner(this.Opponent);
@@ -546,6 +551,7 @@ public class RPSUtility {
 
     /**
      * Check if the sender is selected or not.
+     * @return related to {@link #senderMove} checker
      */
     public boolean isSenderSelect() {
         return this.senderMove != null;
@@ -553,6 +559,7 @@ public class RPSUtility {
 
     /**
      * Check if the Opponent is selected or not.
+     * @return related to {@link #opponentMove} checker
      */
     public boolean isOpponentSelect() {
         return this.opponentMove != null;
@@ -575,6 +582,7 @@ public class RPSUtility {
 
     /**
      * get the Opponent move.
+     * @return related to {@link #senderMove} checker
      */
     public RPSTypes getSenderMove() {
         return this.senderMove;
@@ -582,6 +590,7 @@ public class RPSUtility {
 
     /**
      * Set the sender move.
+     * @param type related to {@link #senderMove} set method
      */
     public void setSenderMove(RPSTypes type) {
         this.senderMove = type;
@@ -589,6 +598,7 @@ public class RPSUtility {
 
     /**
      * get the Opponent move.
+     * @return related to {@link #opponentMove} getter
      */
     public RPSTypes getOpponentMove() {
         return this.opponentMove;
@@ -596,6 +606,7 @@ public class RPSUtility {
 
     /**
      * set the Opponent move.
+     * @param type related to {@link #opponentMove} set method
      */
     public void setOpponentMove(RPSTypes type) {
         this.opponentMove = type;

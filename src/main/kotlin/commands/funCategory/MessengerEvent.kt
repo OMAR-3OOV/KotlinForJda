@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import utilities.messengerUtility.MessengerManager
+import utilities.massangerUtility.MessengerManager
 
 class MessengerEvent: ListenerAdapter() {
 
@@ -26,7 +26,7 @@ class MessengerEvent: ListenerAdapter() {
         } else if (event.isFromGuild && event.isFromThread) {
             if (!MessengerManager.dm.containsKey(event.author)) return
             val managerMessage = MessengerManager.dm[event.author]!!.message
-            if (MessengerManager.threadMessages[managerMessage!!.idLong]!! != event.threadChannel) return println("WRONG!")
+            if (MessengerManager.threadMessages[managerMessage.idLong]!! != event.threadChannel) return println("WRONG!")
             if (!MessengerManager.dm[event.author]!!.started) return
             if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌")).queue()
 
@@ -70,8 +70,8 @@ class MessengerEvent: ListenerAdapter() {
 
                 val msg = mm.controlPanel().complete()
 
-                mm.createThreadMessages(msg)!!.queue { thread ->
-                    thread.sendMessage("${mm.sender!!.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
+                mm.createThreadMessages(msg).queue { thread ->
+                    thread.sendMessage("${mm.sender.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
                         .queue()
                     mm.setThread(thread)
                     thread.manager.setArchived(true).setLocked(true).queue()
@@ -95,7 +95,7 @@ class MessengerEvent: ListenerAdapter() {
         } else if (event.isFromGuild && event.isFromThread) {
             if (!MessengerManager.dm.containsKey(event.author)) return
             val managerMessage = MessengerManager.dm[event.author]!!.message
-            if (MessengerManager.threadMessages[managerMessage!!.idLong]!! != event.threadChannel) return println("WRONG!")
+            if (MessengerManager.threadMessages[managerMessage.idLong]!! != event.threadChannel) return println("WRONG!")
             if (!MessengerManager.dm[event.author]!!.started) return
 
             val messenger = MessengerManager.dm[event.author]!!
@@ -111,11 +111,11 @@ class MessengerEvent: ListenerAdapter() {
         if (event.isFromType(ChannelType.GUILD_PUBLIC_THREAD)) {
             if (MessengerManager.threadManager.containsKey(event.channel)) {
                 val mm = MessengerManager.threadManager[event.channel]!!
-                if (mm.isMessage) return
+                if (mm.isMessage()) return
                 if (mm.started) {
-                    val thread = mm.message!!.createThreadChannel("${mm.getter.name} Messenger").complete()
+                    val thread = mm.message.createThreadChannel("${mm.getter.name} Messenger").complete()
 
-                    thread.sendMessage("${mm.sender!!.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
+                    thread.sendMessage("${mm.sender.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
                         .queue()
                     thread.manager.setArchived(true).setLocked(true).queue()
                     mm.setThread(thread)

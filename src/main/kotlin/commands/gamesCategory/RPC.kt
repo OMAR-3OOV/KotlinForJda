@@ -5,7 +5,6 @@ import gameUtilities.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
 import utilities.staffUtility.Roles
@@ -18,10 +17,6 @@ class RPC : Command {
         // codes
         val embed = EmbedBuilder()
         val user = event.author
-
-        val rock: String = "\uD83C\uDFFB"
-        val paper: String = "\uD83D\uDD90\uD83C\uDFFB"
-        val scissors: String = "\uD83C\uDFFB"
 
         val gui: StringBuilder = StringBuilder()
 
@@ -46,14 +41,14 @@ class RPC : Command {
         // commands : r?rpc <opponent> <rounds>
 
         if (args.isNotEmpty()) {
-            var opponent = args.get(0)
+            var opponent = args[0]
 
             val regex = Pattern.compile(Message.MentionType.USER.pattern.toString())
             val matcher = regex.matcher(opponent)
 
             opponent = if (matcher.find()) {
                 opponent.replace("<", "").replace("!", "").replace("@", "").replace("#", "").replace("&", "")
-                    .replace(">", "");
+                    .replace(">", "")
             } else {
                 event.jda.getUsersByName(opponent, true).stream().map { m -> m.id }.collect(Collectors.joining())
             }
@@ -62,12 +57,12 @@ class RPC : Command {
             val rps = RPSUtility(user, target, event.guild, event.textChannel, embed)
 
             if (args.size > 1) {
-                if (args[1].equals("-r")) {
+                if (args[1] == "-r") {
                     rps.isUnlimitedLoop = true
                 }
             }
         } else {
-            val rps = RPSUtility(user, null, event.guild, event.textChannel, embed)
+            RPSUtility(user, null, event.guild, event.textChannel, embed)
         }
     }
 

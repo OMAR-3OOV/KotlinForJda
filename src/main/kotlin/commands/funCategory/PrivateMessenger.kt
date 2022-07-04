@@ -5,10 +5,9 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
-import utilities.messengerUtility.MessengerManager
+import utilities.massangerUtility.MessengerManager
 import utilities.staffUtility.Roles
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -23,7 +22,8 @@ class PrivateMessenger : Command {
         try {
             val handler = ArrayList<String>(args)
             if (event.textChannel.permissionOverrides.any { map -> map.permissionHolder!!.hasPermission(Permission.MESSAGE_SEND) }) {
-                event.channel.sendMessage(":x: | This is public text channel, please make sure to use this command in private channel so you will feel the experience!").queue()
+                event.channel.sendMessage(":x: | This is public text channel, please make sure to use this command in private channel so you will feel the experience!")
+                    .queue()
             }
 
             var userMentioned = handler[0]
@@ -31,14 +31,15 @@ class PrivateMessenger : Command {
             val regex: Pattern = Pattern.compile(Message.MentionType.USER.pattern.pattern())
             val matcher: Matcher = regex.matcher(userMentioned)
 
-            if (matcher.find()) {
-                userMentioned = userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
+            userMentioned = if (matcher.find()) {
+                userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
                     .replace("&", "").replace(">", "")
             } else if (Pattern.compile("\\d+").matcher(userMentioned).find()) {
-                userMentioned = userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
+                userMentioned.replace("<", "").replace("!", "").replace("@", "").replace("#", "")
                     .replace("&", "").replace(">", "")
             } else {
-                    event.channel.sendMessage(":x: | Sorry i can't decide what ${userMentioned} means! **Make sure to mention a user or use the user id**").queue()
+                event.channel.sendMessage(":x: | Sorry i can't decide what $userMentioned means! **Make sure to mention a user or use the user id**")
+                    .queue()
                 return
             }
 
@@ -55,7 +56,8 @@ class PrivateMessenger : Command {
             val messenger = MessengerManager(user, channel)
 
             if (MessengerManager.dm.containsKey(event.author) && MessengerManager.messenger.containsKey(user)) {
-                event.channel.sendMessage(":x: | You're already with ${MessengerManager.dm[event.author]!!.getter.name} in messenger!").queue()
+                event.channel.sendMessage(":x: | You're already with ${MessengerManager.dm[event.author]!!.getter.name} in messenger!")
+                    .queue()
             }
 
             messenger.setSender(event.author)
