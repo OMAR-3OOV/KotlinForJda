@@ -1,8 +1,7 @@
-package utilities.massangerUtility
+package utilities.messengerUtility
 
 import dev.minn.jda.ktx.events.onButton
 import dev.minn.jda.ktx.messages.Embed
-import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.exceptions.ContextException
@@ -16,11 +15,13 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
+/**
+ * This manager can use only one time when it's already used.
+ */
 data class MessengerManager(val getter: User, val channel: TextChannel) {
 
     lateinit var sender: User
     lateinit var message: Message
-    val jda: JDA = channel.jda
 
     var pause = false
 
@@ -30,7 +31,6 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
     var started = false
 
     companion object {
-
         /**
          * ### [User] related to the [getter].
          * ### [MessengerManager] related to this class.
@@ -107,8 +107,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
         try {
             this.started = true
             this.getter.openPrivateChannel().queue { private ->
-                // Default message
-                private.sendMessage("Hi ${getter.name}! 😀").queue()
+                private.sendMessage("Hi ${getter.name}! 😀").queue() // First message send
                 messenger[this.getter] = this
                 dm[this.sender] = this
             }
@@ -383,6 +382,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      * This method is the control panel to the messenger that [sender] can use it.
      */
     fun controlPanel(): MessageAction {
+        val jda = channel.jda
         val bts: ArrayList<Button> = ArrayList()
 
         bts.add(Button.danger("${this.sender.id}-end", "End messenger"))

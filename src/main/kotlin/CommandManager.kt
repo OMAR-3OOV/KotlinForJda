@@ -8,7 +8,7 @@ import commands.adminCategory.Shutdown
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.massangerUtility.MessengerManager
+import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.RolesData
 import java.util.*
 import java.util.concurrent.TimeUnit

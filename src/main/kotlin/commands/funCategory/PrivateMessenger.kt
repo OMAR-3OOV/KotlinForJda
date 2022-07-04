@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
-import utilities.massangerUtility.MessengerManager
+import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.Roles
 import java.util.regex.Matcher
 import java.util.regex.Pattern

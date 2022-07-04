@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import utilities.massangerUtility.MessengerManager
+import utilities.messengerUtility.MessengerManager
 import java.io.FileNotFoundException
 
 class Events(bot: Main.Companion) : ListenerAdapter() {
