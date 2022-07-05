@@ -1,33 +1,43 @@
-import utilities.categoryUtil.Categories
-import utilities.categoryUtil.CategoryManager
+import utilities.categoryUtility.Categories
+import utilities.categoryUtility.CategoryManager
 import com.sun.istack.Nullable
 import commands.Help
-import commands.Potato
 import commands.Question
-import commands.funCategory.Funfact
+import commands.adminCategory.RolesManager
+import commands.adminCategory.Shutdown
+import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import utilities.messengerUtility.MessengerManager
+import utilities.staffUtility.RolesData
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
+@OptIn(ExperimentalTime::class)
 open class CommandManager(bot: Main.Companion) {
 
     var commands: MutableMap<String, Command> = LinkedHashMap()
 
     private var categories: MutableMap<String, Categories> = HashMap()
-    open var commandsByCategory = TreeMap<Categories, List<Command>>()
+    open var commandsByCategory = TreeMap<Categories, List<Command>>() // easy way to call the commands, and it made the code go faster than before
 
     init {
 
-        addCommand(
+        val (task, time) = measureTimedValue { addCommand(
             Question(),
-            Potato(),
             Help(bot),
-            Funfact(),
             RPC(),
-        )
+            Shutdown(),
+            RolesManager(),
+            PrivateMessenger()
+        )}
+
+        println("Commands register time: $time")
 
         registerCategories()
         registerCommandsIntoCategory()
@@ -42,11 +52,19 @@ open class CommandManager(bot: Main.Companion) {
      */
     @Throws(NullPointerException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
+        if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.textChannel) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
+        val rolesData = RolesData(event.author)
+
         val split: List<String> =
             event.message.contentRaw.lowercase().replaceFirst(Pattern.quote(prefix).toRegex(), "").split(" ")
         val command: String = split[0].lowercase(Locale.getDefault())
 
         if (commands.containsKey(command)) {
+            if (!commands[command]!!.roles.contains(rolesData.getUserRole())) {
+                event.channel.sendMessage("> Sorry you don't have the role to use this command!").queue()
+                return
+            }
+
             val args: List<String> = split.subList(1, split.size)
 
             commands[command]?.handle(args, event)
@@ -56,8 +74,6 @@ open class CommandManager(bot: Main.Companion) {
     /**
      * a supertype function
      * The command should exist in the Map, otherwise, it won't work!
-     *
-     * New
      */
 
     private fun addCommand(vararg commands: Command) {
@@ -67,6 +83,14 @@ open class CommandManager(bot: Main.Companion) {
         }
     }
 
+    /**
+     * Just to register the categories into hashmap & use them as a information and concept for the commands
+     *
+     * NOTE: This hashmap is just to get the categories and not the commands from the categories
+     * first, because the way to call this hashmap is by using <category-name>:<category-id>.
+     * it's really special way to recall the hashmap, and it's key for every category.
+     * so even if there is a changes in future in categories, old data won't erase.
+     */
     private fun registerCategories() {
         for (category in Categories.values()) {
             val cm = CategoryManager(category)
@@ -83,8 +107,7 @@ open class CommandManager(bot: Main.Companion) {
      */
     private fun registerCommandsIntoCategory() {
         Categories.values().forEach { category ->
-            commandsByCategory[category] =
-                commands.values.stream().filter { filter -> filter.category == category }.toList()
+            commandsByCategory[category] = commands.values.stream().filter { filter -> filter.category == category }.toList()
         }
     }
 }

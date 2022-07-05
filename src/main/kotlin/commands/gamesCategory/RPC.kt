@@ -1,10 +1,15 @@
 package commands.gamesCategory
 
 import Command
+import gameUtilities.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import java.lang.NullPointerException
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
+import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 class RPC : Command {
 
@@ -13,53 +18,68 @@ class RPC : Command {
         val embed = EmbedBuilder()
         val user = event.author
 
-        try {
+        val gui: StringBuilder = StringBuilder()
 
-            val rock: String = "\uD83C\uDFFB"
-            val paper: String = "\uD83D\uDD90\uD83C\uDFFB"
-            val scissors: String = "\uD83C\uDFFB"
+        /**
+         * The game gui
+         *
+         * ------------------
+         * |................|
+         * |....p1....p2....|
+         * |................|
+         * -----------------=
+         *
+         * it will be replacement string
+         */
 
-            val gui: StringBuilder = StringBuilder()
+        gui.append("------------------").append("\n")
+        gui.append("|................|").append("\n")
+        gui.append("|....P1....P2....|").append("\n")
+        gui.append("|................|").append("\n")
+        gui.append("------------------").append("\n")
 
-            /**
-             * The game gui
-             *
-             * ------------------
-             * |................|
-             * |....p1....p2....|
-             * |................|
-             * -----------------=
-             *
-             * it will be replacement string
-             */
+        // commands : r?rpc <opponent> <rounds>
 
-            gui.append("------------------").append("\n")
-            gui.append("|................|").append("\n")
-            gui.append("|....P1....P2....|").append("\n")
-            gui.append("|................|").append("\n")
-            gui.append("------------------").append("\n")
+        if (args.isNotEmpty()) {
+            var opponent = args[0]
 
-            if (args.isEmpty()) {
-                val bot = event.jda.selfUser;
+            val regex = Pattern.compile(Message.MentionType.USER.pattern.toString())
+            val matcher = regex.matcher(opponent)
 
-                embed.setTitle("RPC ( ${user.name} vs ${event.jda.selfUser.name} )")
-
-                val rpcGame = RPSData(user, bot, event.textChannel, embed)
+            opponent = if (matcher.find()) {
+                opponent.replace("<", "").replace("!", "").replace("@", "").replace("#", "").replace("&", "")
+                    .replace(">", "")
+            } else {
+                event.jda.getUsersByName(opponent, true).stream().map { m -> m.id }.collect(Collectors.joining())
             }
 
-        } catch (userErr: NullPointerException) {
+            val target = event.guild.retrieveMemberById(opponent).complete().user
+            val rps = RPSUtility(user, target, event.guild, event.textChannel, embed)
 
-            event.channel.sendMessageEmbeds(embed.build())
+            if (args.size > 1) {
+                if (args[1] == "-r") {
+                    rps.isUnlimitedLoop = true
+                }
+            }
+        } else {
+            RPSUtility(user, null, event.guild, event.textChannel, embed)
         }
+    }
+
+    override fun onSlashCommand(event: SlashCommandInteractionEvent
+    ) {
+        TODO("Not yet implemented")
     }
 
 
     override val help: String
         get() = String.format("\n```md\n# To play rpc with someone use r?${command} <user> / <user-id>\n# To play rpc with bot use r?${command}```")
     override val command: String
-        get() = "rpc"
+        get() = "rps"
     override val category: Categories
         get() = Categories.GAMES
+    override val roles: List<Roles>
+        get() = Roles.values().toList()
     override val description: String
         get() = "You can play rock paper scissors with bot/someone and having fun!"
     override val isDisplay: Boolean

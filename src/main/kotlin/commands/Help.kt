@@ -4,15 +4,15 @@ import Command
 import CommandManager
 import Main
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.Command.Option
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.categoryUtil.Categories
-import utilities.categoryUtil.CategoryManager
+import utilities.categoryUtility.Categories
+import utilities.staffUtility.Roles
 import java.awt.Color
 import java.lang.NullPointerException
 import java.util.*
 import java.util.stream.Collectors
-import java.util.stream.Stream
-import kotlin.streams.toList
 
 class Help(private val bot: Main.Companion) : Command {
 
@@ -46,7 +46,7 @@ class Help(private val bot: Main.Companion) : Command {
                  */
 
                 commandManager.commandsByCategory.forEach { (category, commands) ->
-                    description.append("**${category.displayName}**").append("\n").append(
+                    description.append("${category.icon} **${category.displayName}**").append("\n").append(
                         commands.stream()
                             .collect(Collectors.toList()).chunked(4).stream()
                             .map { it.joinToString(" / ") { value -> "`${value.command}`" } }
@@ -80,7 +80,7 @@ class Help(private val bot: Main.Companion) : Command {
                             .findFirst().get()
                     val description: StringBuilder = embed.descriptionBuilder
 
-                    embed.setTitle("${info.command} ( ${info.category.displayName} category) :")
+                    embed.setTitle("${info.command} ( ${info.category.displayName} category ) :")
                     description.append("**Explaining for the command:**").append("\n")
                     description.append("> **Description:** ${info.description}").append("\n")
                     description.append("> **How to use:** ${info.help}").append("\n")
@@ -102,7 +102,7 @@ class Help(private val bot: Main.Companion) : Command {
                 }
             }
         } catch (error: NullPointerException) {
-            embed.setTitle(" Something went wrong ( ${error.message} })")
+            embed.setTitle(" Something went wrong ( ${error.message} )")
             embed.setDescription("> Please report this issue to the developer, `Indra#4646`")
             embed.setColor(Color(255, 0, 0))
         }
@@ -110,13 +110,17 @@ class Help(private val bot: Main.Companion) : Command {
         event.channel.sendMessageEmbeds(embed.build()).queue()
     }
 
-
+    override fun onSlashCommand(event: SlashCommandInteractionEvent) {
+        TODO("Not yet implemented")
+    }
     override val help: String
         get() = "$command <command>"
     override val command: String
         get() = "help"
     override val category: Categories
         get() = Categories.INFORMATION
+    override val roles: List<Roles>
+        get() = Roles.values().toList()
     override val description: String
         get() = "i will assistant you with everything you need"
     override val isDisplay: Boolean
