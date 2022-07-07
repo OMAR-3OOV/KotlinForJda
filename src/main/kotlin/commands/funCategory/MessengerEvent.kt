@@ -9,33 +9,28 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import utilities.messengerUtility.MessengerManager
 
-class MessengerEvent: ListenerAdapter() {
+class MessengerEvent : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.author.isBot || event.author.isSystem) return
 
         if (event.isFromType(ChannelType.PRIVATE)) {
             if (!MessengerManager.messenger.containsKey(event.author)) return
-            if (!MessengerManager.messenger[event.author]!!.started) return
-            if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌")).queue()
-
             val messenger: MessengerManager = MessengerManager.messenger[event.author]!!
-            val message = event.message
+            if (!messenger.started) return
 
-            messenger.sendMessageToChannel(message)
+            messenger.sendMessageToChannel(event.message)
         } else if (event.isFromGuild && event.isFromThread) {
             if (!MessengerManager.dm.containsKey(event.author)) return
-            val managerMessage = MessengerManager.dm[event.author]!!.message
-            if (MessengerManager.threadMessages[managerMessage.idLong]!! != event.threadChannel) return println("WRONG!")
-            if (!MessengerManager.dm[event.author]!!.started) return
-            if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌")).queue()
-
             val messenger: MessengerManager = MessengerManager.dm[event.author]!!
-            val message = event.message
 
+            if (!messenger.started) return
+            if (messenger.getThread() != event.threadChannel) return println("WRONG!") // Check if the thread exist
+            if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌"))
+                .queue()  // Check if the user using command, so it will NOT work
             if (messenger.pause) return
 
-            messenger.sendMessageToDm(message)
+            messenger.sendMessageToDm(event.message)
         }
     }
 
@@ -55,30 +50,29 @@ class MessengerEvent: ListenerAdapter() {
             val user = MessengerManager.userCache[event.messageIdLong]
 
             if (!MessengerManager.dm.containsKey(user)) return
+            val messenger = MessengerManager.dm[user]!!
+
             if (MessengerManager.messageCache.containsKey(event.messageIdLong)) {
-                val messenger = MessengerManager.dm[user]!!
-
                 if (messenger.pause) return
-
                 messenger.deleteSenderLastMessage()
             }
         } else if (event.isFromGuild) {
             if (MessengerManager.managerMessage.containsKey(event.messageIdLong)) {
-                val mm = MessengerManager.managerMessage[event.messageIdLong]
-                mm?.isMessage(true)
-                mm?.getThread()!!.delete().queue()
+                val messenger = MessengerManager.managerMessage[event.messageIdLong]!!
+                messenger.setThreadChecker(true)
+                messenger.getThread().delete().queue()
 
-                val msg = mm.controlPanel().complete()
+                val msg = messenger.controlPanel().complete()
 
-                mm.createThreadMessages(msg).queue { thread ->
-                    thread.sendMessage("${mm.sender.asMention} Thread has been resumed you can start chatting with ${mm.getter.name} again")
+                messenger.createThreadMessages(msg).queue { thread ->
+                    thread.sendMessage("${messenger.sender.asMention} Thread has been resumed you can start chatting with ${messenger.getter.name} again")
                         .queue()
-                    mm.setThread(thread)
+                    messenger.setThread(thread)
                     thread.manager.setArchived(true).setLocked(true).queue()
-                    mm.isMessage(false)
+                    messenger.setThreadChecker(false)
                 }
 
-                mm.setMessage(msg)
+                messenger.setMessage(msg)
             }
         }
     }
@@ -108,10 +102,11 @@ class MessengerEvent: ListenerAdapter() {
     }
 
     override fun onChannelDelete(event: ChannelDeleteEvent) {
-        if (event.isFromType(ChannelType.GUILD_PUBLIC_THREAD)) {
+        if (event.channelType.isThread) {
+
             if (MessengerManager.threadManager.containsKey(event.channel)) {
                 val mm = MessengerManager.threadManager[event.channel]!!
-                if (mm.isMessage()) return
+                if (mm.isThread()) return
                 if (mm.started) {
                     val thread = mm.message.createThreadChannel("${mm.getter.name} Messenger").complete()
 
