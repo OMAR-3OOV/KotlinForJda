@@ -6,10 +6,12 @@ import gameUtilities.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import utilities.messengerUtility.MessengerManager
 import java.io.FileNotFoundException
@@ -30,13 +32,14 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
     }
 
     override fun onUserContextInteraction(event: UserContextInteractionEvent) {
-        if (event.name == "Messenger") {
+        if (event.name == "Messenger" && event.channelType.isMessage) {
             val user = event.target
-            val channel = event.textChannel
+            val channel:TextChannel = event.channel as TextChannel
             if (event.user == user) {
                 event.interaction.reply("${event.user.asMention} Are you that loneliness to messenger yourself :p? i can call my developer to talk with you if you are!")
                     .setEphemeral(true).queue()
             } else if (!(user.isBot || user.isSystem)) {
+
 
                 val messenger = MessengerManager(user, channel)
 
@@ -52,11 +55,13 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
                 event.interaction.reply("${event.user.asMention} YOU CAN OPEN MESSENGER WITH OTHER BOTS >:c!")
                     .setEphemeral(true).queue()
             }
-        } else if (event.name == "Rock Paper Scissors") {
+        } else if (event.name == "Rock Paper Scissors" && event.channelType.isMessage) {
+
             val user = event.user
             val target = event.target
-            val channel = event.textChannel
-            if (event.user == user) {
+            val channel:TextChannel = event.channel as TextChannel
+
+            if (event.target == user) {
                 event.interaction.reply("${event.user.asMention} Are you that loneliness to messenger yourself :p? i can call my developer to talk with you if you are!")
                     .setEphemeral(true).queue()
             } else if (!(user.isBot || user.isSystem)) {
@@ -68,7 +73,7 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
                 gui.append("|................|").append("\n")
                 gui.append("------------------").append("\n")
 
-                val rps = RPSUtility(user, target, event.guild, event.textChannel, embed)
+                val rps = RPSUtility(user, target, event.guild, channel, embed)
             } else {
                 event.interaction.reply("${event.user.asMention} YOU CAN OPEN MESSENGER WITH OTHER BOTS >:c!")
                     .setEphemeral(true).queue()

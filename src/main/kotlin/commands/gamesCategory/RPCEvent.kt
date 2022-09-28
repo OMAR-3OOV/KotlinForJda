@@ -26,7 +26,7 @@ class RPCEvent : ListenerAdapter() {
                     it.setColor(Color(200, 177, 99))
                 }
 
-                event.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rps.rpsButtons(false))).queue()
+                event.editMessageEmbeds(embed.build()).setComponents(ActionRow.of(rps.rpsButtons(false))).queue()
 
                 rps.updatePendingRequest(true)
             } else if (event.button.id.equals("deny-button-${rps.opponent!!.id}")) {
@@ -51,7 +51,7 @@ class RPCEvent : ListenerAdapter() {
                 embed.clearFields()
                 embed.addField("Game Over", "${event.user.asMention} has been cancel the match!", false);
 
-                event.deferEdit().setActionRows(ActionRow.of(event.message.buttons.map { it.asDisabled() })).setEmbeds(embed.build()).queue()
+                event.deferEdit().setComponents(ActionRow.of(event.message.buttons.map { it.asDisabled() })).setEmbeds(embed.build()).queue()
                 return
             }
 
@@ -82,7 +82,7 @@ class RPCEvent : ListenerAdapter() {
                             )
                         }
 
-                        event.deferEdit().setEmbeds(embed.build()).setActionRows(ActionRow.of(rps.rpsButtons(true)))
+                        event.deferEdit().setEmbeds(embed.build()).setComponents(ActionRow.of(rps.rpsButtons(true)))
                             .queue()
 
                         rps.gameEnd()

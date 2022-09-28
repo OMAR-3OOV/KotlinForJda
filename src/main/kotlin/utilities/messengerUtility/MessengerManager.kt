@@ -3,12 +3,14 @@ package utilities.messengerUtility
 import dev.minn.jda.ktx.events.onButton
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.requests.RestAction
-import net.dv8tion.jda.api.requests.restaction.MessageAction
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,6 +24,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
 
     lateinit var sender: User
     lateinit var message: Message
+    var checkThread = false
 
     var pause = false
 
@@ -224,12 +227,14 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      */
     fun sendMessageToDm(message: Message, actionRow: ActionRow? = null) {
         try {
+            println(message.contentRaw)
+            println(message.contentDisplay)
             this.getter.openPrivateChannel().queue { dm ->
 
                 val msg: Message = if (actionRow != null) {
-                    dm.sendMessage(message.contentRaw).setActionRows(actionRow).complete()
+                    dm.sendMessage(message.contentDisplay).setComponents(actionRow).complete()
                 } else {
-                    dm.sendMessage(message.contentRaw).complete()
+                    dm.sendMessage(message.contentDisplay).complete()
                 }
 
                 setSenderLastMessage(msg)
@@ -343,15 +348,25 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
     /**
      * This method to check if the control panel message get deleted or not,
      * most use to manage the events because when the message delete the thread keeps,
-     * so I have to delete the thread as well, after delete the thread the event for deleting it will be requested so that make few errors,
-     * so I have to make sure that the message is exists
+     * so it should to delete the thread as well, after deleting thread, the delete event will not throw errors,
+     * so it should check if the message is exists though this method.
      */
-    fun isMessage(boolean: Boolean = true): Boolean {
-        return boolean
+    fun isThread(): Boolean {
+        return this.checkThread
     }
 
     /**
-     * The default embed for [message] to control the messenger
+     * This method to set the checker to true or false when the message get deleted,
+     * so it will not throw an error anymore if the message get deleted because of thread channel.
+     */
+    fun setThreadChecker(boolean: Boolean) {
+        this.checkThread = boolean
+    }
+
+    /**
+     * The default embed control panel [message].
+     *
+     * if the containers is null it will use the default containers that is set already!.
      */
     private fun defaultEmbed(
         t: String = "messenger between ${sender.name} & ${getter.name}",
@@ -379,9 +394,9 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      * ### [Message] related to [message].
      * ### [onButton] related to [ButtonInteractionEvent] using additional jda kotlin supported.
      *
-     * This method is the control panel to the messenger that [sender] can use it.
+     * The control panel for the [threadMessages].
      */
-    fun controlPanel(): MessageAction {
+    fun controlPanel(): MessageCreateAction {
         val jda = channel.jda
         val bts: ArrayList<Button> = ArrayList()
 
@@ -463,7 +478,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
     }
 
     /**
-     * This method used to create new thread channel to [Control panel message][MessengerManager.message]
+     * To create new thread channel to [Control panel message][MessengerManager.message]
      */
     fun createThreadMessages(message: Message): RestAction<ThreadChannel> {
         return channel.createThreadChannel("${getter.name} Messenger", message.id)

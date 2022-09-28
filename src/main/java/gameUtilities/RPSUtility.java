@@ -3,6 +3,7 @@ package gameUtilities;
 import commands.gamesCategory.RPSTypes;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,7 @@ public class RPSUtility {
 
     /**
      * @param sender related to who send the request.
-     * @param Opponent related to who mentioned in the request ( if there is not mention it will set to bot).
+     * @param Opponent related to who mentioned in the request ( if there is no mention it will set to bot).
      * @param guild related to the guild that the request come from
      * @param channel related to the channel that the request come from
      * @param embed related to {@link #embed}
@@ -99,7 +100,7 @@ public class RPSUtility {
             generateNewGameId();
 
             /*
-            * To be clearly here, I said in Opponent it going to set the bot as a opponent if the opponent is null
+            * To be clearly here, I said in Opponent it will set the bot as opponent if the opponent is null
             * but the think is that the opponent will NOT to set till the createNewGame(); method runs
             */
             pending.put(this.Opponent, this);
@@ -143,7 +144,7 @@ public class RPSUtility {
 
             embed.setColor(new Color(255, 150, 0));
 
-            this.message = this.message.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rpsButtons(false))).complete();
+            this.message = this.message.editMessageEmbeds(embed.build()).setComponents(ActionRow.of(rpsButtons(false))).complete();
             game.put(this.message, this);
         } else if (getOpponent() != null) { // Accept - Deny
             EmbedBuilder embed = this.embed;
@@ -162,14 +163,14 @@ public class RPSUtility {
             pendingButtons.add(Button.success("accept-button-" + this.getOpponent().getId(), "Accept"));
             pendingButtons.add(Button.danger("deny-button-" + this.getOpponent().getId(), "Deny"));
 
-            this.message = channel.sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(pendingButtons)).complete();
+            this.message = channel.sendMessageEmbeds(embed.build()).setComponents(ActionRow.of(pendingButtons)).complete();
             game.put(this.message, this);
         } else { // If there is no opponent mentioned
             EmbedBuilder embed = this.embed;
             this.Opponent = this.guild.getSelfMember().getUser();
 
             var random = new Random();
-            var nextStep = random.nextInt(2); // 0, 1, 2 ( there is 3 choice only in rps game )
+            var nextStep = random.nextInt(3); // 0, 1, 2 ( there is 3 choice only in rps game )
 
             var botchoice = switch (nextStep) {
                 case 0 -> RPSTypes.ROCK;
@@ -189,7 +190,7 @@ public class RPSUtility {
 
             embed.setColor(new Color(255, 150, 0));
 
-            this.message = channel.sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rpsButtons(false))).complete();
+            this.message = channel.sendMessageEmbeds(embed.build()).setComponents(ActionRow.of(rpsButtons(false))).complete();
             game.put(this.message, this);
         }
     }
@@ -249,9 +250,9 @@ public class RPSUtility {
         }
 
         if (unlimitedLoop) {
-            this.message.editMessageEmbeds(this.embed.build()).setActionRows(ActionRow.of(rpsButtons(true))).queue();
+            this.message.editMessageEmbeds(this.embed.build()).setComponents(ActionRow.of(rpsButtons(true))).queue();
         } else {
-            this.message.editMessageEmbeds(this.embed.build()).setActionRows(ActionRow.of(rpsButtons(true))).queue();
+            this.message.editMessageEmbeds(this.embed.build()).setComponents(ActionRow.of(rpsButtons(true))).queue();
             endTasks();
         }
     }
@@ -276,7 +277,7 @@ public class RPSUtility {
 
         if (this.Opponent == this.guild.getSelfMember().getUser()) {
             var random = new Random();
-            var nextStep = random.nextInt(2); // 0, 1, 2 ( there is 3 choice only in rps game )
+            var nextStep = random.nextInt(3); // 0, 1, 2 ( there is 3 choice only in rps game )
 
             var botchoice = switch (nextStep) {
                 case 0 -> RPSTypes.ROCK;
@@ -378,9 +379,9 @@ public class RPSUtility {
 
         if (isRematch) {
             Button cancel = Button.danger(this.gameId + "-cancel", "❌");
-            this.message.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rpsButtons(false)), ActionRow.of(cancel.asEnabled())).queue();
+            this.message.editMessageEmbeds(embed.build()).setComponents(ActionRow.of(rpsButtons(false)), ActionRow.of(cancel.asEnabled())).queue();
         } else {
-            this.message.editMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rpsButtons(false))).queue();
+            this.message.editMessageEmbeds(embed.build()).setComponents(ActionRow.of(rpsButtons(false))).queue();
         }
     }
 
@@ -388,7 +389,7 @@ public class RPSUtility {
      * If the message deleted by accidentally, it will automatically send to the same previous info.
      */
     public void resendGameMessage() {
-        this.message = channel.sendMessageEmbeds(embed.build()).setActionRows(ActionRow.of(rpsButtons(false))).complete();
+        this.message = channel.sendMessageEmbeds(embed.build()).setComponents(ActionRow.of(rpsButtons(false))).complete();
         game.put(this.message, this);
     }
 
