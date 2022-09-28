@@ -7,5 +7,4 @@ public class Lunching {
 
         MainKt.main();
     }
-
 }

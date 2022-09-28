@@ -54,7 +54,7 @@ class RPC : Command {
             }
 
             val target = event.guild.retrieveMemberById(opponent).complete().user
-            val rps = RPSUtility(user, target, event.guild, event.textChannel, embed)
+            val rps = RPSUtility(user, target, event.guild, event.channel.asTextChannel(), embed)
 
             if (args.size > 1) {
                 if (args[1] == "-r") {
@@ -62,7 +62,7 @@ class RPC : Command {
                 }
             }
         } else {
-            RPSUtility(user, null, event.guild, event.textChannel, embed)
+            RPSUtility(user, null, event.guild, event.channel.asTextChannel(), embed)
         }
     }
 

@@ -3,7 +3,7 @@ package commands.funCategory
 import Command
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
@@ -11,6 +11,7 @@ import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.Roles
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 /**
  * This command is private and only few people who can access it.
@@ -20,8 +21,35 @@ class PrivateMessenger : Command {
 
     override fun handle(args: List<String>, event: MessageReceivedEvent) {
         try {
+
+            val permissions = arrayListOf(Permission.MESSAGE_SEND, Permission.MANAGE_THREADS, Permission.MANAGE_CHANNEL)
+            val permissionsDidntHave: ArrayList<Permission> = arrayListOf()
+            var listChecker = false
+
+            for (permission in permissions) {
+                if (!event.guild.selfMember.hasPermission(permission)) {
+                    permissionsDidntHave.add(permission)
+                }
+
+                if (!permissionsDidntHave.isEmpty() && !listChecker) {
+                    listChecker = true
+                }
+            }
+
+            if (listChecker) {
+                event.channel.sendMessage(
+                    ":x: | **The permissions requires to use this command is not available, please check if i have the following permissions**: ${
+                        permissionsDidntHave.stream().map { "`${it.getName()}`" }.collect(
+                            Collectors.joining(" / ")
+                        )
+                    }"
+                ).queue()
+                return
+            }
+
+
             val handler = ArrayList<String>(args)
-            if (event.textChannel.permissionOverrides.any { map -> map.permissionHolder!!.hasPermission(Permission.MESSAGE_SEND) }) {
+            if (event.channel.asTextChannel().permissionOverrides.any { map -> map.permissionHolder!!.hasPermission(Permission.MESSAGE_SEND) }) {
                 event.channel.sendMessage(":x: | This is public text channel, please make sure to use this command in private channel so you will feel the experience!")
                     .queue()
             }
@@ -45,7 +73,7 @@ class PrivateMessenger : Command {
 
             val user = event.guild.retrieveMemberById(userMentioned).complete().user
 
-            val channel: TextChannel = event.textChannel
+            val channel: TextChannel = event.channel.asTextChannel()
 
             // There is no meaning off messaging bot at all because he will not respond!
             if (user.isBot || user.isSystem) {
