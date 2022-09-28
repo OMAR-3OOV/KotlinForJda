@@ -33,7 +33,6 @@ class Main {
             val token = "ODk3MTgzNDAxOTM5OTc2MjEz.G5fGl_.eYZrPlXSCpzFUH07VI8OlhauEWuIVKJRoWFTJg"
 
             val jda = light(token, enableCoroutines = true, intents = gateways) {
-                enableIntents(gateways)
                 enableCache(
                     CacheFlag.ACTIVITY,
                     CacheFlag.ONLINE_STATUS,
