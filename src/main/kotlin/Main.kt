@@ -1,10 +1,7 @@
 import commands.funCategory.MessengerEvent
 import commands.gamesCategory.RPCEvent
-import dev.minn.jda.ktx.jdabuilder.intents
 import dev.minn.jda.ktx.jdabuilder.light
 import listeners.Events
-import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Icon
 import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.commands.build.Commands
@@ -36,7 +33,6 @@ class Main {
             val token = "ODk3MTgzNDAxOTM5OTc2MjEz.G5fGl_.eYZrPlXSCpzFUH07VI8OlhauEWuIVKJRoWFTJg"
 
             val jda = light(token, enableCoroutines = true, intents = gateways) {
-                enableIntents(gateways)
                 enableCache(
                     CacheFlag.ACTIVITY,
                     CacheFlag.ONLINE_STATUS,

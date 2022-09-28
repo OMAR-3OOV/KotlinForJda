@@ -227,8 +227,6 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      */
     fun sendMessageToDm(message: Message, actionRow: ActionRow? = null) {
         try {
-            println(message.contentRaw)
-            println(message.contentDisplay)
             this.getter.openPrivateChannel().queue { dm ->
 
                 val msg: Message = if (actionRow != null) {
