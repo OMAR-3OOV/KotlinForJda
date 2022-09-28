@@ -3,12 +3,14 @@ package utilities.messengerUtility
 import dev.minn.jda.ktx.events.onButton
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.requests.RestAction
-import net.dv8tion.jda.api.requests.restaction.MessageAction
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -225,12 +227,14 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      */
     fun sendMessageToDm(message: Message, actionRow: ActionRow? = null) {
         try {
+            println(message.contentRaw)
+            println(message.contentDisplay)
             this.getter.openPrivateChannel().queue { dm ->
 
                 val msg: Message = if (actionRow != null) {
-                    dm.sendMessage(message.contentRaw).setActionRows(actionRow).complete()
+                    dm.sendMessage(message.contentDisplay).setComponents(actionRow).complete()
                 } else {
-                    dm.sendMessage(message.contentRaw).complete()
+                    dm.sendMessage(message.contentDisplay).complete()
                 }
 
                 setSenderLastMessage(msg)
@@ -392,7 +396,7 @@ data class MessengerManager(val getter: User, val channel: TextChannel) {
      *
      * The control panel for the [threadMessages].
      */
-    fun controlPanel(): MessageAction {
+    fun controlPanel(): MessageCreateAction {
         val jda = channel.jda
         val bts: ArrayList<Button> = ArrayList()
 

@@ -1,6 +1,5 @@
 import utilities.categoryUtility.Categories
 import utilities.categoryUtility.CategoryManager
-import com.sun.istack.Nullable
 import commands.Help
 import commands.Question
 import commands.adminCategory.RolesManager
@@ -8,6 +7,7 @@ import commands.adminCategory.Shutdown
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import org.jetbrains.annotations.Nullable
 import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.RolesData
 import java.util.*
@@ -52,7 +52,7 @@ open class CommandManager(bot: Main.Companion) {
      */
     @Throws(NullPointerException::class)
     open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
-        if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.textChannel) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
+        if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.channel.asTextChannel()) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
         val rolesData = RolesData(event.author)
 
         val split: List<String> =

@@ -3,7 +3,7 @@ package commands.funCategory
 import Command
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import utilities.categoryUtility.Categories
@@ -49,7 +49,7 @@ class PrivateMessenger : Command {
 
 
             val handler = ArrayList<String>(args)
-            if (event.textChannel.permissionOverrides.any { map -> map.permissionHolder!!.hasPermission(Permission.MESSAGE_SEND) }) {
+            if (event.channel.asTextChannel().permissionOverrides.any { map -> map.permissionHolder!!.hasPermission(Permission.MESSAGE_SEND) }) {
                 event.channel.sendMessage(":x: | This is public text channel, please make sure to use this command in private channel so you will feel the experience!")
                     .queue()
             }
@@ -73,7 +73,7 @@ class PrivateMessenger : Command {
 
             val user = event.guild.retrieveMemberById(userMentioned).complete().user
 
-            val channel: TextChannel = event.textChannel
+            val channel: TextChannel = event.channel.asTextChannel()
 
             // There is no meaning off messaging bot at all because he will not respond!
             if (user.isBot || user.isSystem) {

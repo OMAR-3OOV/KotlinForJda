@@ -1,6 +1,7 @@
 package commands.funCategory
 
-import net.dv8tion.jda.api.entities.ChannelType
+import net.dv8tion.jda.api.entities.channel.ChannelType
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent
@@ -25,7 +26,7 @@ class MessengerEvent : ListenerAdapter() {
             val messenger: MessengerManager = MessengerManager.dm[event.author]!!
 
             if (!messenger.started) return
-            if (messenger.getThread() != event.threadChannel) return println("WRONG!") // Check if the thread exist
+            if (messenger.getThread() != event.channel.asThreadChannel()) return println("WRONG!") // Check if the thread exist
             if (event.message.contentRaw.contains("r?")) return event.message.addReaction(Emoji.fromUnicode("❌"))
                 .queue()  // Check if the user using command, so it will NOT work
             if (messenger.pause) return
@@ -36,7 +37,7 @@ class MessengerEvent : ListenerAdapter() {
 
     override fun onMessageDelete(event: MessageDeleteEvent) {
         if (event.isFromType(ChannelType.PRIVATE)) {
-            val user = event.privateChannel.user
+            val user = event.channel.asPrivateChannel().user
             if (!MessengerManager.messenger.containsKey(user)) return
             if (MessengerManager.messageCache.containsKey(event.messageIdLong)) {
                 val content: String = MessengerManager.messageCache[event.messageIdLong].toString()
@@ -64,7 +65,8 @@ class MessengerEvent : ListenerAdapter() {
 
                 val msg = messenger.controlPanel().complete()
 
-                messenger.createThreadMessages(msg).queue { thread ->
+                messenger.createThreadMessages(msg).queue { thread:ThreadChannel ->
+
                     thread.sendMessage("${messenger.sender.asMention} Thread has been resumed you can start chatting with ${messenger.getter.name} again")
                         .queue()
                     messenger.setThread(thread)
@@ -89,7 +91,7 @@ class MessengerEvent : ListenerAdapter() {
         } else if (event.isFromGuild && event.isFromThread) {
             if (!MessengerManager.dm.containsKey(event.author)) return
             val managerMessage = MessengerManager.dm[event.author]!!.message
-            if (MessengerManager.threadMessages[managerMessage.idLong]!! != event.threadChannel) return println("WRONG!")
+            if (MessengerManager.threadMessages[managerMessage.idLong]!! != event.channel.asThreadChannel()) return println("WRONG!")
             if (!MessengerManager.dm[event.author]!!.started) return
 
             val messenger = MessengerManager.dm[event.author]!!
@@ -104,8 +106,8 @@ class MessengerEvent : ListenerAdapter() {
     override fun onChannelDelete(event: ChannelDeleteEvent) {
         if (event.channelType.isThread) {
 
-            if (MessengerManager.threadManager.containsKey(event.channel)) {
-                val mm = MessengerManager.threadManager[event.channel]!!
+            if (MessengerManager.threadManager.containsKey(event.channel.asThreadChannel())) {
+                val mm = MessengerManager.threadManager[event.channel.asThreadChannel()]!!
                 if (mm.isThread()) return
                 if (mm.started) {
                     val thread = mm.message.createThreadChannel("${mm.getter.name} Messenger").complete()
