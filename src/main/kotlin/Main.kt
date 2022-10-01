@@ -30,7 +30,7 @@ class Main {
                 GatewayIntent.DIRECT_MESSAGES, GatewayIntent.DIRECT_MESSAGE_REACTIONS
             )
 
-            val token = "ODk3MTgzNDAxOTM5OTc2MjEz.GRmdg0.-UyvtPgwnVzc71eudA5QvvvJp_AYhXBj4c3AlE"
+            val token = ""
 
             val jda = light(token, enableCoroutines = true, intents = gateways) {
                 enableCache(
