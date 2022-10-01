@@ -1,13 +1,14 @@
 package commands.gamesCategory
 
 import dev.minn.jda.ktx.messages.Embed
-import gameUtilities.RPSUtility
+import utilities.games.rpsutility.RPSUtility
 import net.dv8tion.jda.api.events.ShutdownEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import utilities.games.rpsutility.RPSTYPES
 import java.awt.Color
 
 class RPCEvent : ListenerAdapter() {
@@ -63,14 +64,14 @@ class RPCEvent : ListenerAdapter() {
                     val selection = event.interaction.button.id!!.replace("emoji-${rps.gameId}-", "")
 
                     if (user == sender) {
-                        rps.senderMove = RPSTypes.getTypeByName(selection)
+                        rps.senderMove = RPSTYPES.getTypeByName(selection)
                     }
 
                     if (user == opponent) {
-                        rps.opponentMove = RPSTypes.getTypeByName(selection)
+                        rps.opponentMove = RPSTYPES.getTypeByName(selection)
                     }
 
-                    if (rps.isAllSelected) {
+                    if (rps.isAllMoves) {
                         val embed = rps.embed.also {
                             it.setDescription(
                                 rps.embedMessage.toString()
@@ -78,7 +79,7 @@ class RPCEvent : ListenerAdapter() {
                                     .replace("|", "\uD83D\uDFE5")
                                     .replace(".", "⬛")
                                     .replace("P1", rps.senderMove.emoji.name)
-                                    .replace("P2", rps.opponentMove.emoji.name)
+                                    .replace("P2", rps.getOpponentMove().emoji.name)
                             )
                         }
 
@@ -135,7 +136,8 @@ class RPCEvent : ListenerAdapter() {
                             inline = false
                         }
                     }
-                    game.message.editMessageEmbeds(embed).queue()
+
+                    game.messageUtility.message.editMessageEmbeds(embed).queue()
                     game.endTasks()
                 }
             }

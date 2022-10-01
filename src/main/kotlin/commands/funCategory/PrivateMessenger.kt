@@ -1,6 +1,6 @@
 package commands.funCategory
 
-import Command
+import utilities.commandsutility.Command
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel

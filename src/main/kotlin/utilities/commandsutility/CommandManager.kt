@@ -1,7 +1,10 @@
+package utilities.commandsutility
+
+import Main
 import utilities.categoryUtility.Categories
 import utilities.categoryUtility.CategoryManager
-import commands.Help
-import commands.Question
+import commands.adminCategory.Help
+import commands.funCategory.Question
 import commands.adminCategory.RolesManager
 import commands.adminCategory.Shutdown
 import commands.funCategory.PrivateMessenger

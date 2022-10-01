@@ -1,8 +1,8 @@
 package listeners
 
-import CommandManager
+import utilities.commandsutility.CommandManager
 import Main
-import gameUtilities.RPSUtility
+import utilities.games.rpsutility.RPSUtility
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.events.ReadyEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.events.message.MessageUpdateEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import utilities.messengerUtility.MessengerManager
 import java.io.FileNotFoundException
@@ -73,7 +72,8 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
                 gui.append("|................|").append("\n")
                 gui.append("------------------").append("\n")
 
-                val rps = RPSUtility(user, target, event.guild, channel, embed)
+                val rps =
+                    RPSUtility(user, target, event.guild, channel, embed)
             } else {
                 event.interaction.reply("${event.user.asMention} YOU CAN OPEN MESSENGER WITH OTHER BOTS >:c!")
                     .setEphemeral(true).queue()
