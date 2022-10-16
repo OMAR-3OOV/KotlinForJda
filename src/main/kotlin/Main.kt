@@ -1,9 +1,10 @@
 import commands.funCategory.MessengerEvent
-import commands.gamesCategory.RPCEvent
+import listeners.RPCEvent
 import dev.minn.jda.ktx.jdabuilder.light
+import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.*
 import listeners.Events
 import net.dv8tion.jda.api.entities.Icon
-import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
@@ -12,65 +13,70 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.IOException
 import java.util.*
-import javax.security.auth.login.LoginException
 import kotlin.io.path.name
 
 class Main {
     companion object {
-        fun Logger(): Logger = LoggerFactory.getLogger(Main::class.java)
+        fun Logger(): Logger = LoggerFactory.getLogger(MainScope().toString())
 
-        @Throws(LoginException::class)
-        @JvmStatic
-        fun start() {
-            val gateways = arrayListOf(
-                GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS,
-                GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES,
-                GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.GUILD_PRESENCES,
-                GatewayIntent.DIRECT_MESSAGES, GatewayIntent.DIRECT_MESSAGE_REACTIONS
-            )
+        suspend fun bot() = coroutineScope {
 
-            val token = "ODk3MTgzNDAxOTM5OTc2MjEz.GRmdg0.-UyvtPgwnVzc71eudA5QvvvJp_AYhXBj4c3AlE"
-
-            val jda = light(token, enableCoroutines = true, intents = gateways) {
-                enableCache(
-                    CacheFlag.ACTIVITY,
-                    CacheFlag.ONLINE_STATUS,
-                    CacheFlag.ROLE_TAGS,
-                    CacheFlag.MEMBER_OVERRIDES,
+            fun start() {
+                val gateways = arrayListOf(
+                    GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS,
+                    GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES,
+                    GatewayIntent.GUILD_MESSAGE_TYPING, GatewayIntent.GUILD_PRESENCES,
+                    GatewayIntent.DIRECT_MESSAGES, GatewayIntent.DIRECT_MESSAGE_REACTIONS
                 )
-                disableCache(EnumSet.of(CacheFlag.EMOJI, CacheFlag.VOICE_STATE))
-                setMemberCachePolicy(MemberCachePolicy.ALL)
-                setChunkingFilter(ChunkingFilter.ALL)
-                addEventListeners(Events(Main), RPCEvent(), MessengerEvent())
-            }.awaitReady()
 
-            try {
-                var pfp = File("System/Pfps").listFiles()!!.random()
+                val dotenv = dotenv()
+                val token = dotenv["TOKEN"]
 
-                if (!pfp.toPath().name.endsWith(".png")) {
-                    pfp = File("System/Pfps/avatar-1.png")
+                val jda = light(token, enableCoroutines = true, intents = gateways) {
+                    enableCache(
+                        CacheFlag.ACTIVITY,
+                        CacheFlag.ONLINE_STATUS,
+                        CacheFlag.ROLE_TAGS,
+                        CacheFlag.MEMBER_OVERRIDES,
+                    )
+                    disableCache(EnumSet.of(CacheFlag.EMOJI, CacheFlag.VOICE_STATE))
+                    setMemberCachePolicy(MemberCachePolicy.ALL)
+                    setChunkingFilter(ChunkingFilter.ALL)
+                    addEventListeners(Events(Main), RPCEvent(), MessengerEvent())
+                }.awaitReady()
+
+                try {
+                    var pfp = File("System/Pfps").listFiles()!!.random()
+
+                    if (!pfp.toPath().name.endsWith(".png")) {
+                        pfp = File("System/Pfps/avatar-1.png")
+                    }
+
+                    val icon = Icon.from(pfp, Icon.IconType.PNG)
+                    val accountManager = jda.selfUser.manager
+
+                    accountManager.setAvatar(icon).queue()
+                } catch (error: IOException) {
+                    Logger().error("The Avatar for the bot hasn't setup because of ${error.message}!")
                 }
 
-                val icon = Icon.from(pfp, Icon.IconType.PNG)
-                val accountManager = jda.selfUser.manager
+                jda.updateCommands()
+                    .addCommands(
+                        Commands.user("Messenger"),
+                        Commands.user("Rock Paper Scissors")
+                    ).queue()
 
-                accountManager.setAvatar(icon).queue()
-            } catch (error: ContextException) {
-                Logger().error("The Avatar for the bot hasn't setup because of ${error.message}!")
+                Logger().info("Bot has been built!")
             }
 
-            jda.updateCommands()
-                .addCommands(
-                    Commands.user("Messenger"),
-                    Commands.user("Rock Paper Scissors")
-                ).queue()
-
-            Logger().info("Bot has been built!")
+            start()
         }
+
     }
 }
 
-fun main() {
-    Main.start()
+suspend fun main() {
+    Main.bot()
 }
