@@ -1,4 +1,4 @@
-package commands.gamesCategory
+package listeners
 
 import dev.minn.jda.ktx.messages.Embed
 import utilities.games.rpsutility.RPSUtility
@@ -29,6 +29,7 @@ class RPCEvent : ListenerAdapter() {
 
                 event.editMessageEmbeds(embed.build()).setComponents(ActionRow.of(rps.rpsButtons(false))).queue()
 
+                rps.getTimer().cancel(false)
                 rps.updatePendingRequest(true)
             } else if (event.button.id.equals("deny-button-${rps.opponent!!.id}")) {
 
@@ -38,6 +39,7 @@ class RPCEvent : ListenerAdapter() {
                 }
 
                 event.editMessageEmbeds(embed.build()).queue()
+                rps.getTimer().cancel(false)
                 rps.updatePendingRequest(false)
             }
         }
@@ -71,15 +73,15 @@ class RPCEvent : ListenerAdapter() {
                         rps.opponentMove = RPSTYPES.getTypeByName(selection)
                     }
 
-                    if (rps.isAllMoves) {
+                    if (rps.isAllMove()) {
                         val embed = rps.embed.also {
                             it.setDescription(
                                 rps.embedMessage.toString()
                                     .replace("-", "\uD83D\uDFE5")
                                     .replace("|", "\uD83D\uDFE5")
                                     .replace(".", "⬛")
-                                    .replace("P1", rps.senderMove.emoji.name)
-                                    .replace("P2", rps.getOpponentMove().emoji.name)
+                                    .replace("P1", rps.senderMove!!.emoji.name)
+                                    .replace("P2", rps.opponentMove!!.emoji.name)
                             )
                         }
 
