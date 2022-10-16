@@ -3,7 +3,6 @@ package utilities.games.rpsutility;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -14,6 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * All things we need to create new RPS Game: Users ID ( sender, Opponent ) / Guild / Channel / Message ( Message, Embed )
@@ -34,26 +36,26 @@ public class RPSUtility extends PlayersUtility {
     public static final List<RPSUtility> games = new ArrayList<>();
     public static final HashMap<Message, RPSUtility> game = new HashMap<>();
     public static final HashMap<User, RPSUtility> pending = new HashMap<>();
+    public ScheduledFuture<?> timer;
     private boolean pendingRequest = false;
     private User winner;
     /* Class methods */
 
     /**
-     * @param sender related to who send the request.
+     * @param sender   related to who send the request.
      * @param opponent related to who mentioned in the request ( if there is no mention it will set to bot).
-     * @param guild related to the guild that the request come from
-     * @param channel related to the channel that the request come from
-     * @param embed related to {@link #embed}
+     * @param guild    related to the guild that the request come from
+     * @param channel  related to the channel that the request come from
+     * @param embed    related to {@link #embed}
      */
     public RPSUtility(User sender, @Nullable User opponent, Guild guild, TextChannel channel, @NotNull EmbedBuilder embed) {
         super(guild, sender, opponent);
+
         this.messageUtility = new MessageUtility(channel);
         this.embed = embed;
 
         // Game tasks
-
         if (super.getOpponent() != null) {
-
             if (super.getOpponent().equals(getGuild().getSelfMember().getUser())) {
                 if (isSenderInGame()) {
                     channel.sendMessage(":x: | `Sorry " + getSender().getName() + " but it seems you're already in game in " + getGuild().getName() + "` **NOTE: You can use `r?rps leave` to leave the game**").queue();
@@ -111,7 +113,7 @@ public class RPSUtility extends PlayersUtility {
         if (getOpponent() != null && pendingRequest) { // Message after opponent accept
 
             embed.setAuthor(getSender().getName() + " Against " + getOpponent().getName());
-            this.messageUtility.addButton(rpsButtons(false));
+            this.messageUtility.addButtons(rpsButtons(false));
 
         } else if (getOpponent().equals(getGuild().getSelfMember().getUser())) { // If the opponent are system
 
@@ -127,7 +129,7 @@ public class RPSUtility extends PlayersUtility {
             setOpponentMove(choice);
 
             embed.setAuthor(getSender().getName() + " Against Me");
-            this.messageUtility.addButton(rpsButtons(false));
+            this.messageUtility.addButtons(rpsButtons(false));
 
         } else if (getOpponent() != null) { // Accept - Deny
 
@@ -137,14 +139,27 @@ public class RPSUtility extends PlayersUtility {
             pendingButtons.add(Button.success("accept-button-" + this.getOpponent().getId(), "Accept"));
             pendingButtons.add(Button.danger("deny-button-" + this.getOpponent().getId(), "Deny"));
 
-            this.messageUtility.addButton(pendingButtons);
+            timer = Executors.newSingleThreadScheduledExecutor().schedule(() -> {
 
+                MessageEditData messageEditData = messageUtility.create(builder -> {
+                    embed.setAuthor(getSender().getName() + " Against " + getOpponent().getName() + " ( Non response )");
+                    embed.setColor(new Color(200, 0, 0));
+
+                    MessageEmbed messageEmbed = embed.build();
+                    builder.setEmbeds(messageEmbed);
+                }).addButtons(pendingButtons.stream().map(Button::asDisabled).toList()).buildEditData();
+
+                messageUtility.getMessage().editMessage(messageEditData).queue();
+                updatePendingRequest(false);
+            }, 5, TimeUnit.SECONDS);
+
+            this.messageUtility.addButtons(pendingButtons);
         }
 
-        MessageCreateData messageCreateData = this.messageUtility.buildMessage(msg -> {
+        MessageCreateData messageCreateData = this.messageUtility.create(msg -> {
             MessageEmbed messageEmbed = embed.build();
             msg.setEmbeds(messageEmbed);
-        });
+        }).buildCreateData();
 
         Message message = this.messageUtility.getChannel().sendMessage(messageCreateData).complete();
         this.messageUtility.setMessage(message);
@@ -188,16 +203,16 @@ public class RPSUtility extends PlayersUtility {
 
         }
 
-        MessageEditData messageEditData = this.messageUtility.editMessage(msg -> {
+        MessageUtility messageEditBuilder = this.messageUtility.create(msg -> {
             MessageEmbed messageEmbed = this.embed.build();
             msg.setEmbeds(messageEmbed);
         });
 
         if (unlimitedLoop) {
-            this.messageUtility.getMessage().editMessage(messageEditData).queue();
+            this.messageUtility.getMessage().editMessage(messageEditBuilder.buildEditData()).queue();
         } else {
-            this.messageUtility.addButton(rpsButtons(true));
-            this.messageUtility.getMessage().editMessage(messageEditData).queue();
+            this.messageUtility.addButtons(rpsButtons(true));
+            this.messageUtility.getMessage().editMessage(messageEditBuilder.buildEditData()).queue();
             endTasks();
         }
     }
@@ -255,7 +270,7 @@ public class RPSUtility extends PlayersUtility {
     }
 
     /**
-     * @param sender related to {@link #sender}
+     * @param sender   related to {@link #sender}
      * @param opponent related to {@link #opponent}
      * @return related to {@link #embed Embed Message}
      */
@@ -294,6 +309,7 @@ public class RPSUtility extends PlayersUtility {
 
     /**
      * Updating the message to currently info for the game stats.
+     *
      * @param isRematch to check if {@link #rematch()}
      */
     public void updateMessage(boolean isRematch) {
@@ -309,16 +325,16 @@ public class RPSUtility extends PlayersUtility {
 
         embed.setColor(new Color(255, 150, 0));
 
-        MessageEditData messageEditData = this.messageUtility.editMessage(msg -> {
+        MessageUtility messageEditData = this.messageUtility.create(msg -> {
             MessageEmbed messageEmbed = this.embed.build();
             msg.setEmbeds(messageEmbed);
         });
 
         if (isRematch) {
             Button cancel = Button.danger(this.gameId + "-cancel", "❌");
-            this.messageUtility.getMessage().editMessage(messageEditData).setComponents(ActionRow.of(rpsButtons(false)),ActionRow.of(cancel.asEnabled())).queue();
+            this.messageUtility.getMessage().editMessage(messageEditData.buildEditData()).setComponents(ActionRow.of(rpsButtons(false)), ActionRow.of(cancel.asEnabled())).queue();
         } else {
-            this.messageUtility.getMessage().editMessage(messageEditData).queue();
+            this.messageUtility.getMessage().editMessage(messageEditData.buildEditData()).queue();
         }
     }
 
@@ -326,10 +342,10 @@ public class RPSUtility extends PlayersUtility {
      * If the message deleted by accidentally, it will automatically send to the same previous info.
      */
     public void resendGameMessage() {
-        MessageCreateData messageCreateData = this.messageUtility.buildMessage(msg -> {
+        MessageCreateData messageCreateData = this.messageUtility.create(msg -> {
             MessageEmbed messageEmbed = embed.build();
             msg.setEmbeds(messageEmbed);
-        });
+        }).buildCreateData();
 
         Message message = this.messageUtility.getChannel().sendMessage(messageCreateData).complete();
         this.messageUtility.setMessage(message);
@@ -338,6 +354,7 @@ public class RPSUtility extends PlayersUtility {
 
     /**
      * Update the pending request.
+     *
      * @param bool to update the pending request
      */
     public void updatePendingRequest(boolean bool) {
@@ -363,6 +380,7 @@ public class RPSUtility extends PlayersUtility {
 
     /**
      * This is the message system that control the game panel.
+     *
      * @return game panel message.
      */
     public MessageUtility getMessageUtility() {
@@ -390,6 +408,10 @@ public class RPSUtility extends PlayersUtility {
         return pending;
     }
 
+    public ScheduledFuture<?> getTimer() {
+        return timer;
+    }
+
     /**
      * This winning system works with numbers, each number have meaning.
      *
@@ -401,24 +423,24 @@ public class RPSUtility extends PlayersUtility {
      * @Note it created as this way to make the system way easier & also to get different choice!
      */
     public Integer winningMove() {
-        if (senderMove == null || getOpponentMove() == null) {
+        if (getSenderMove() == null || getOpponentMove() == null) {
             return 3;
         } else if ( // Winning Move
-                senderMove.equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
-                        senderMove.equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.PAPER) ||
-                        senderMove.equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.ROCK)
+                getSenderMove().equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
+                        getSenderMove().equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.PAPER) ||
+                        getSenderMove().equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.ROCK)
         ) {
             return 0;
         } else if ( // Drawing Move
-                senderMove.equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.ROCK) ||
-                        senderMove.equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
-                        senderMove.equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.PAPER)
+                getSenderMove().equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.ROCK) ||
+                        getSenderMove().equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
+                        getSenderMove().equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.PAPER)
         ) {
             return 1;
         } else if ( // Losing Move
-                senderMove.equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.ROCK) ||
-                        senderMove.equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
-                        senderMove.equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.PAPER)
+                getSenderMove().equals(RPSTYPES.SCISSORS) && getOpponentMove().equals(RPSTYPES.ROCK) ||
+                        getSenderMove().equals(RPSTYPES.PAPER) && getOpponentMove().equals(RPSTYPES.SCISSORS) ||
+                        getSenderMove().equals(RPSTYPES.ROCK) && getOpponentMove().equals(RPSTYPES.PAPER)
         ) {
             return 2;
         }
@@ -467,6 +489,7 @@ public class RPSUtility extends PlayersUtility {
 
     /**
      * Checking if the {@link #opponent} is already in game.
+     *
      * @return boolean
      */
     private boolean isOpponentInGame() {
@@ -478,6 +501,7 @@ public class RPSUtility extends PlayersUtility {
 
     /**
      * Checking if the {@link #sender} is already in game.
+     *
      * @return boolean
      */
     private boolean isSenderInGame() {

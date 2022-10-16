@@ -3,10 +3,7 @@ package utilities.games.rpsutility;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import net.dv8tion.jda.api.utils.messages.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,18 +15,12 @@ import java.util.function.Consumer;
 public class MessageUtility {
     private Message message;
     private final MessageChannel channel;
-    private MessageCreateBuilder messageCreateBuilder;
+    private final MessageCreateBuilder messageCreateBuilder;
     private MessageCreateData messageCreateData;
-    private MessageEditBuilder messageEditBuilder;
-    private MessageEditData messageEditData;
-
-    private final List<Button> buttons;
 
     public MessageUtility(MessageChannel channel) {
         this.channel = channel;
-        this.buttons = new ArrayList<>();
         this.messageCreateBuilder = new MessageCreateBuilder();
-        this.messageEditBuilder = new MessageEditBuilder();
     }
 
     public Message getMessage() {
@@ -43,72 +34,48 @@ public class MessageUtility {
     public MessageCreateBuilder getMessageCreateBuilder() {
         return messageCreateBuilder;
     }
-
-    public MessageEditBuilder getMessageEditBuilder() {
-        return messageEditBuilder;
-    }
-
     public MessageCreateData getMessageCreateData() {
         return messageCreateData;
-    }
-
-    public MessageEditData getMessageEditData() {
-        return messageEditData;
     }
 
     public MessageCreateData getMessageData() {
         return this.messageCreateBuilder.build();
     }
 
-    public List<Button> getButtons() {
-        return buttons;
-    }
-
     public void setMessage(Message message) {
         this.message = message;
     }
 
-    public void setMessageCreateData(MessageCreateData messageCreateData) {
-        this.messageCreateData = messageCreateData;
-    }
 
-    public void setMessageEditData(MessageEditData messageEditData) {
-        this.messageEditData = messageEditData;
-    }
-
-    public void addButton(Button btn) {
-        this.buttons.add(btn);
-    }
-
-    public void addButton(List<Button> btn) {
-        this.buttons.addAll(btn);
-    }
-
-    public void addButton(Button... btns) {
-        this.buttons.addAll(List.of(btns));
-    }
-
-    public MessageCreateData buildMessage(Consumer<MessageCreateBuilder> consumer) {
-        if (!buttons.isEmpty()) {
-            this.messageCreateBuilder.setActionRow(buttons);
-            this.buttons.clear();
-        }
-
+    public MessageUtility create(Consumer<MessageCreateBuilder> consumer) {
         consumer.accept(this.messageCreateBuilder);
-        setMessageCreateData(messageCreateBuilder.build());
-
-        return messageCreateData;
+        return this;
     }
 
-    public MessageEditData editMessage(Consumer<MessageEditBuilder> consumer) {
-        if (!buttons.isEmpty()) {
-            this.messageEditBuilder.setActionRow(buttons);
-            this.buttons.clear();
-        }
+    public MessageUtility addButton(Button btn) {
+        this.messageCreateBuilder.setActionRow(btn);
+        messageCreateData = messageCreateBuilder.build();
+        return this;
+    }
 
-        consumer.accept(this.messageEditBuilder);
-        setMessageEditData(this.messageEditBuilder.build());
+    public MessageUtility addButtons(Button... btn) {
+        this.messageCreateBuilder.setActionRow(btn);
+        messageCreateData = messageCreateBuilder.build();
+        return this;
+    }
 
-        return messageEditData;
+    public MessageUtility addButtons(List<Button> btn) {
+        this.messageCreateBuilder.setActionRow(btn);
+        messageCreateData = messageCreateBuilder.build();
+        return this;
+    }
+
+    public MessageCreateData buildCreateData() {
+        return messageCreateData = messageCreateBuilder.build();
+    }
+
+    public MessageEditData buildEditData() {
+        messageCreateData = messageCreateBuilder.build();
+        return MessageEditData.fromCreateData(messageCreateData);
     }
 }
