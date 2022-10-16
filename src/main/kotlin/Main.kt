@@ -41,6 +41,7 @@ class Main {
                         CacheFlag.ROLE_TAGS,
                         CacheFlag.MEMBER_OVERRIDES,
                     )
+
                     disableCache(EnumSet.of(CacheFlag.EMOJI, CacheFlag.VOICE_STATE))
                     setMemberCachePolicy(MemberCachePolicy.ALL)
                     setChunkingFilter(ChunkingFilter.ALL)
