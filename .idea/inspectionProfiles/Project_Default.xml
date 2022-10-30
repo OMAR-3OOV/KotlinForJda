@@ -10,6 +10,13 @@
         <language minSize="116" name="Java" />
       </Languages>
     </inspection_tool>
+    <inspection_tool class="GradlePackageUpdate" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="excludeList">
+        <list>
+          <option value="com.google.guava:guava" />
+        </list>
+      </option>
+    </inspection_tool>
     <inspection_tool class="JavadocDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ADDITIONAL_TAGS" value="Number,Note,NOTE" />
     </inspection_tool>
