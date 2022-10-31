@@ -5,6 +5,7 @@ import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.*
 import listeners.Events
 import net.dv8tion.jda.api.entities.Icon
+import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
@@ -48,25 +49,24 @@ class Main {
                     addEventListeners(Events(Main), RPCEvent(), MessengerEvent())
                 }.awaitReady()
 
+                var pfp = File("System/Pfps").listFiles()!!.random()
+
+                if (!pfp.toPath().name.endsWith(".png")) {
+                    pfp = File("System/Pfps/avatar-1.png")
+                }
+
+                val icon = Icon.from(pfp, Icon.IconType.PNG)
+                val accountManager = jda.selfUser.manager
+
                 try {
-                    var pfp = File("System/Pfps").listFiles()!!.random()
-
-                    if (!pfp.toPath().name.endsWith(".png")) {
-                        pfp = File("System/Pfps/avatar-1.png")
-                    }
-
-                    val icon = Icon.from(pfp, Icon.IconType.PNG)
-                    val accountManager = jda.selfUser.manager
-
                     accountManager.setAvatar(icon).queue()
-                } catch (error: IOException) {
+                } catch (error: ContextException) {
                     Logger().error("The Avatar for the bot hasn't setup because of ${error.message}!")
                 }
 
                 jda.updateCommands()
                     .addCommands(
-                        Commands.user("Messenger"),
-                        Commands.user("Rock Paper Scissors")
+                        Commands.user("Messenger"), Commands.user("Rock Paper Scissors")
                     ).queue()
 
                 Logger().info("Bot has been built!")

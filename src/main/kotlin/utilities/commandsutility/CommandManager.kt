@@ -10,7 +10,6 @@ import commands.adminCategory.Shutdown
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import org.jetbrains.annotations.Nullable
 import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.RolesData
 import java.util.*
@@ -31,7 +30,7 @@ open class CommandManager(bot: Main.Companion) {
 
     init {
 
-        val (task, time) = measureTimedValue { addCommand(
+        val (time) = measureTimedValue { addCommand(
             Question(),
             Help(bot),
             RPC(),
@@ -53,8 +52,8 @@ open class CommandManager(bot: Main.Companion) {
      * Make sure that even if there is arguments existing the command will work,
      * so you should use if statement in command class to void this problem but , in other hand, it won't make any issues with command
      */
-    @Throws(NullPointerException::class)
-    open fun handleCommand(event: @Nullable MessageReceivedEvent, prefix: String) {
+
+    open fun handleCommand(event: MessageReceivedEvent, prefix: String) {
         if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.channel.asTextChannel()) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
         val rolesData = RolesData(event.author)
 
@@ -87,7 +86,7 @@ open class CommandManager(bot: Main.Companion) {
     }
 
     /**
-     * Just to register the categories into hashmap & use them as a information and concept for the commands
+     * Just to register the categories into hashmap & use them as information and concept for the commands
      *
      * NOTE: This hashmap is just to get the categories and not the commands from the categories
      * first, because the way to call this hashmap is by using <category-name>:<category-id>.
