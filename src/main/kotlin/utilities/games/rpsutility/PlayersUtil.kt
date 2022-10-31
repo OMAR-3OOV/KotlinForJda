@@ -3,7 +3,7 @@ package utilities.games.rpsutility
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.User
 
-open class PlayersUtility(val guild: Guild, val sender: User, var opponent: User?) {
+open class PlayersUtil(val guild: Guild, val sender: User, var opponent: User?) {
 
     var senderMove: RPSTYPES? = null
     var opponentMove: RPSTYPES? = null
@@ -15,11 +15,11 @@ open class PlayersUtility(val guild: Guild, val sender: User, var opponent: User
     }
 
     fun isSenderMove(): Boolean {
-        return checkNotNull(senderMove != null)
+        return (senderMove != null)
     }
 
     fun isOpponentMove(): Boolean {
-        return checkNotNull(opponentMove != null)
+        return (opponentMove != null)
     }
 
     fun isAllMove(): Boolean {
