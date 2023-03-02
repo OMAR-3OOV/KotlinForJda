@@ -84,7 +84,7 @@ class PrivateMessenger : Command {
             val messenger = MessengerManager(user, channel)
 
             if (MessengerManager.dm.containsKey(event.author) && MessengerManager.messenger.containsKey(user)) {
-                event.channel.sendMessage(":x: | You're already with ${MessengerManager.dm[event.author]!!.getter.name} in messenger!")
+                event.channel.sendMessage(":x: | You're already with ${MessengerManager.dm[event.author]!!.sender.name} in messenger!")
                     .queue()
             }
 

@@ -7,6 +7,7 @@ import commands.adminCategory.Help
 import commands.funCategory.Question
 import commands.adminCategory.RolesManager
 import commands.adminCategory.Shutdown
+import commands.adminCategory.testCommand
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
@@ -36,7 +37,8 @@ open class CommandManager(bot: Main.Companion) {
             RPC(),
             Shutdown(),
             RolesManager(),
-            PrivateMessenger()
+            PrivateMessenger(),
+            testCommand()
         )}
 
         println("Commands register time: $time")

@@ -5,3 +5,4 @@
 /out/production/classes/
 *.yml
 .env
+System/config.json
