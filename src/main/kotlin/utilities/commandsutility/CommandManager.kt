@@ -11,10 +11,8 @@ import commands.adminCategory.testCommand
 import commands.funCategory.PrivateMessenger
 import commands.gamesCategory.RPC
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import utilities.messengerUtility.MessengerManager
 import utilities.staffUtility.RolesData
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
@@ -56,7 +54,7 @@ open class CommandManager(bot: Main.Companion) {
      */
 
     open fun handleCommand(event: MessageReceivedEvent, prefix: String) {
-        if (MessengerManager.dm.containsKey(event.author) && MessengerManager.dm[event.author]!!.channel == event.channel.asTextChannel()) return event.message.reply(":x: | You can't use Commands in the same channel during Messenger").queue { msg -> msg.delete().queueAfter(3, TimeUnit.SECONDS)}
+        if (event.channel.type.isThread) return event.channel.sendMessage(":x: | Commands are not allowed in threads!").queue()
         val rolesData = RolesData(event.author)
 
         val split: List<String> =

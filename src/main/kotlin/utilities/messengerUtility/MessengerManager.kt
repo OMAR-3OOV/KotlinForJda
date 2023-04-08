@@ -1,26 +1,30 @@
 package utilities.messengerUtility
 
 import dev.minn.jda.ktx.events.onButton
+import dev.minn.jda.ktx.events.onEntitySelect
 import dev.minn.jda.ktx.messages.Embed
+import dev.minn.jda.ktx.messages.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.Message.Attachment
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.exceptions.ContextException
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
+import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu
+import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu.SelectTarget
 import net.dv8tion.jda.api.requests.RestAction
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction
 import net.dv8tion.jda.api.utils.FileUpload
 import java.awt.Color
 import java.net.URL
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+
 
 /**
  * This manager can use only one time when it's already used.
@@ -29,9 +33,10 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
 
     lateinit var getter: User
     lateinit var message: Message
-    var checkThread = false
+    private var checkThread = false
 
     var pause = false
+    private var save = false
 
     /**
      * It describes if the messenger is still ON or OFF, the default result is false, it will to be true when the [MessengerManager.messengerStart] used.
@@ -54,7 +59,6 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
          * This function is usable when the [getter] do any action.
          */
         val dm: HashMap<User, MessengerManager> = HashMap()
-
 
         /**
          * The messages that [sender] send it and the [TextChannel] receive it.
@@ -124,12 +128,17 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
             managerMessage[message.idLong] = this
             createThreadMessages(message).queue { thread ->
                 setThread(thread)
+
+                threadMessageInfoAction(thread)
+
                 thread.sendMessage("${this.getter.asMention} Now you can start chatting with ${this.sender.name} here")
                     .queueAfter(2, TimeUnit.SECONDS)
+
+                message.editMessageEmbeds(defaultEmbed()).queue()
             }
 
         } catch (error: Exception) {
-            this.channel.sendMessage(":x: | I  can't DM this user! `Error: ${error.message}`").queue()
+            this.channel.sendMessage(":x: | I can't DM this user! `Error: ${error.message}`").queue()
             error.printStackTrace()
         }
     }
@@ -139,16 +148,10 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
      */
     private fun messengerEnds() {
         this.started = false
-        message.editMessageEmbeds(
-            defaultEmbed(
-                t = "messenger between ${getter.name} & ${sender.name} (*Ends*)",
-                c = Color.RED
-            )
-        ).queue()
-        getThread().delete().queue()
-        threadMessages.remove(this.message.idLong)
-        messenger.remove(this.sender)
-        dm.remove(this.getter)
+        threadMessages.clear()
+        threadManager.clear()
+        messenger.clear()
+        dm.clear()
         senderMessagesHistory.clear()
         getterMessagesHistory.clear()
         messageCache.clear()
@@ -161,7 +164,7 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
      * This method to set [getter] the one who will send the messages to the channel and the bot going to send it to direct message to [sender]
      */
     @JvmName("setSenderMessenger")
-    fun setSender(user: User) {
+    fun setGetter(user: User) {
         this.getter = user
     }
 
@@ -191,6 +194,24 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
         threadManager[thread] = this
     }
 
+    fun threadMessageInfoAction(thread: ThreadChannel) {
+        val desc = StringBuilder()
+
+        desc.append("<a:writingklee:1092172631110865027> **User:** ${this.sender.asTag}").append("\n \n")
+        desc.append("<a:writingklee:1092172631110865027> **Time Created:** <t:${Timestamp.from(Instant.now()).toInstant().epochSecond}:R>").append("\n \n")
+        desc.append("<a:writingklee:1092172631110865027> **Panel:** [Click Here](${this.message.jumpUrl})")
+            .append("\n \n")
+
+        thread.sendMessageEmbeds(
+            Embed {
+                title = "Information about this conversation"
+                color = Color.PINK.rgb
+                description = desc.toString()
+                image = "https://imgur.com/hBW33t0.png"
+            }
+        ).setActionRow(Button.link(message.jumpUrl, "Control Panel").asEnabled()).queue { it.pin().queue() }
+    }
+
     /**
      * This method will add the message to [messageCache] Hashmap.
      */
@@ -216,6 +237,7 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
             val msg = getThread()
                 .sendMessage("**${sender.name}:** ${message.contentRaw}")
                 .complete()
+
             addSenderMessage(message, msg)
             addMessageCache(message)
         } catch (err: Exception) {
@@ -231,7 +253,7 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
      */
     fun sendMessageToChannelImage(message: Message, attach: Attachment) {
         try {
-            val attachmentQueue : Queue<Attachment>  = LinkedList()
+            val attachmentQueue: Queue<Attachment> = LinkedList()
             attachmentQueue.add(attach)
             val attachment = attachmentQueue.remove()
             val msg = getThread()
@@ -281,13 +303,14 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
     fun sendMessageToDmImage(message: Message, attach: Attachment) {
         try {
             this.sender.openPrivateChannel().queue { dm ->
-                val attachmentQueue : Queue<Attachment>  = LinkedList()
+                val attachmentQueue: Queue<Attachment> = LinkedList()
                 attachmentQueue.add(attach)
                 val attachment = attachmentQueue.remove()
 
                 val msg: Message
                 if (attachment != null) {
-                    msg = dm.sendMessage(message.contentDisplay).setFiles(FileUpload.fromData(URL(attachment.url).openStream(), attachment.fileName)).complete()
+                    msg = dm.sendMessage(message.contentDisplay)
+                        .setFiles(FileUpload.fromData(URL(attachment.url).openStream(), attachment.fileName)).complete()
                 } else {
                     message.reply(":x: | Failed to send! Error: Attachment is null").queue()
                     return@queue
@@ -349,7 +372,8 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
     fun senderMessageEdit(message: Message) {
         try {
             val content = message.contentRaw
-            val msg = senderMessagesHistory[message.idLong]!!.editMessage("**${sender.name}:** $content (*Edited*)").complete()
+            val msg = senderMessagesHistory[message.idLong]!!.editMessage("**${sender.name}:** $content (*Edited*)")
+                .complete()
             senderMessagesHistory[message.idLong] = msg
         } catch (err: Exception) {
             getThread().sendMessage(":x: | Failed to edit! Error: ${err.message}").queue()
@@ -430,114 +454,154 @@ data class MessengerManager(val sender: User, val channel: TextChannel) {
      *
      * if the containers is null it will use the default containers that is set already!.
      */
-    private fun defaultEmbed(
+    fun defaultEmbed(
         t: String = "messenger between ${getter.name} & ${sender.name}",
-        c: Color = Color(0x2F3136)
+        c: Color = Color(0x2F3136),
     ): MessageEmbed {
         val desc = ArrayList<String>()
 
-        desc.add("**> How to use?**")
-        desc.add(" - To end the messenger you have to use *End Messenger* Button!")
-        desc.add(" - To pause the messenger you have to use *Pause* Button! ( it will turn to resume )")
-        desc.add(" - You can use some message filters, **Filters:** `<activity> / <avatar> / <timecreated>`")
+        desc.add("**> Information**")
+        desc.add(" • You can end the conversation by pressing `End Messenger` Button!")
+        desc.add(" • You can Pause/Resume the conversation by pressing `Pause/Resume` Button!")
+        desc.add(" • Chat filters, **Usage:** `r?filters`")
 
-        return Embed {
+        val embed = EmbedBuilder {
             title = t
             description = desc.stream().collect(Collectors.joining("\n"))
             color = c.rgb
-            footer {
-                name = "Created: ${SimpleDateFormat("dd/MM/yyyy").format(Date())}"
-                iconUrl = getter.avatarUrl
+        }
+
+        embed.field {
+            name = "Conversation Store"
+            value = save.toString()
+            inline = true
+        }
+
+        embed.field {
+            name = "Conversation Status"
+            value = if (!started) "Ended" else (if (pause) "Paused" else "Active")
+            inline = true
+        }
+
+        if (threadManager.isNotEmpty()) {
+            embed.field {
+                name = "Thread"
+                value = "[Join the thread](${getThread().jumpUrl})"
+                inline = false
             }
         }
+
+        return embed.build()
     }
 
-    /**
-     * ### [Message] related to [message].
-     * ### [onButton] related to [ButtonInteractionEvent] using additional jda kotlin supported.
-     *
-     * The control panel for the [threadMessages].
-     */
     fun controlPanel(): MessageCreateAction {
         val jda = channel.jda
-        val bts: ArrayList<Button> = ArrayList()
 
-        bts.add(Button.danger("${this.getter.id}-end", "End messenger"))
-        bts.add(Button.secondary("${this.getter.id}-pause", "Pause"))
-        val resumebtn = Button.success("${this.getter.id}-resume", "Resume")
+        val endButton: Button = Button.danger("${this.getter.id}-end", "End Messenger")
+        val pauseButton: Button = Button.secondary("${this.getter.id}-pause", "Pause")
+        val resumeButton: Button = Button.success("${this.getter.id}-resume", "Resume")
 
-        jda.onButton("${this.getter.id}-end") {
-            if (it.user != getter) return@onButton
-            if (started) {
-                if (it.isAcknowledged) {
-                    it.hook.editOriginalEmbeds(defaultEmbed(t = "messenger between ${getter.name} & ${sender.name} (*Ends*)"))
-                        .queue()
-                    messengerEnds()
-                    return@onButton
+        val saveButton: Button = Button.success("${this.getter.id}-save", "Save this conversation")
+        val unsaveButton: Button = Button.danger("${this.getter.id}-unsave", "UnSave this conversation")
+
+        val usuallyButtonList: List<Button> =
+            listOf(endButton, if (pause) resumeButton else pauseButton, if (save) unsaveButton else saveButton)
+
+
+        jda.onButton(endButton.id!!) {
+            if (it.user == getter && !it.isAcknowledged && started) {
+                it.deferEdit().queue()
+
+                it.hook.editOriginalEmbeds(
+                    defaultEmbed(
+                        t = "messenger between ${getter.name} & ${sender.name} (*Ends*)",
+                        c = Color.RED
+                    )
+                ).setActionRow(
+                    endButton.asDisabled(),
+                    if (pause) resumeButton.asDisabled() else pauseButton.asDisabled(),
+                    if (save) unsaveButton.asDisabled() else saveButton.asDisabled()
+                ).queue()
+
+                if (save) {
+                    getThread().manager.setLocked(true).queue()
+                } else {
+                    getThread().delete().queue()
                 }
 
-                it.interaction.deferEdit()
-                    .setEmbeds(defaultEmbed(t = "messenger between ${getter.name} & ${sender.name} (*Ends*)"))
-                    .queue()
                 messengerEnds()
+
+                println(started)
+                return@onButton
             }
         }
 
-        jda.onButton("${this.getter.id}-pause") {
-            if (it.user != getter) return@onButton
-            if (started) {
-                if (it.isAcknowledged) {
-                    it.hook.editOriginalEmbeds(
-                        defaultEmbed(
-                            t = "messenger between ${getter.name} & ${sender.name} (*Paused*)",
-                            c = Color(0xCC7900)
-                        )
-                    )
-                        .setActionRow(resumebtn).queue()
-                    pause()
-                    return@onButton
-                }
+        jda.onButton(pauseButton.id!!) {
+            if (it.user == getter && !it.isAcknowledged && started) {
+                it.deferEdit().queue()
 
-                it.interaction.deferEdit()
-                    .setEmbeds(
-                        defaultEmbed(
-                            t = "messenger between ${getter.name} & ${sender.name} (*Paused*)",
-                            c = Color(0xCC7900)
-                        )
+                it.hook.editOriginalEmbeds(
+                    defaultEmbed(
+                        t = "messenger between ${getter.name} & ${sender.name} (*Paused*)",
+                        c = Color.ORANGE
                     )
-                    .setActionRow(resumebtn).queue()
+                ).setActionRow(endButton, resumeButton, if (save) unsaveButton else saveButton).queue()
+
                 pause()
+                return@onButton
             }
         }
 
-        jda.onButton("${this.getter.id}-resume") {
-            if (it.user != getter) return@onButton
-            if (started) {
-                if (it.isAcknowledged) {
-                    it.hook.editOriginalEmbeds(defaultEmbed(t = "messenger between ${getter.name} & ${sender.name} (*Resumed*)"))
-                        .setActionRow(bts).queue()
-                    resume()
-                    return@onButton
-                }
+        jda.onButton(resumeButton.id!!) {
+            if (it.user == getter && !it.isAcknowledged && started) {
+                it.deferEdit().queue()
 
-                it.interaction.deferEdit()
-                    .setEmbeds(defaultEmbed(t = "messenger between ${getter.name} & ${sender.name} (*Resumed*)"))
-                    .setActionRow(bts).queue()
+                it.hook.editOriginalEmbeds(
+                    defaultEmbed(
+                        t = "messenger between ${getter.name} & ${sender.name} (*Resumed*)",
+                        c = Color(0x2F3136)
+                    )
+                ).setActionRow(endButton, pauseButton, if (save) unsaveButton else saveButton).queue()
+
                 resume()
+                return@onButton
             }
         }
 
-        return if (this.pause) {
-            this.channel.sendMessageEmbeds(
-                defaultEmbed(
-                    t = "messenger between ${getter.name} & ${sender.name} (*Paused*)",
-                    c = Color(0xCC7900)
-                )
-            ).setActionRow(resumebtn)
-        } else {
-            this.channel.sendMessageEmbeds(defaultEmbed()).setActionRow(bts)
+        jda.onButton(saveButton.id!!) {
+            if (it.user == getter && !it.isAcknowledged && started) {
+                save = true
+                it.deferEdit().queue()
+
+                it.hook.editOriginalEmbeds(
+                    defaultEmbed(
+                        t = "messenger between ${getter.name} & ${sender.name} (*${if (save) "Saved" else "Unsaved"}*)",
+                    )
+                ).setActionRow(endButton, if (pause) resumeButton else pauseButton, unsaveButton).queue()
+
+                return@onButton
+            }
         }
+
+        jda.onButton(unsaveButton.id!!) {
+            if (it.user == getter && !it.isAcknowledged && started) {
+                save = false
+                it.deferEdit().queue()
+
+                it.hook.editOriginalEmbeds(
+                    defaultEmbed(
+                        t = "messenger between ${getter.name} & ${sender.name} (*${if (save) "Saved" else "Unsaved"}*)",
+                    )
+                ).setActionRow(endButton, if (pause) resumeButton else pauseButton, saveButton).queue()
+
+                return@onButton
+            }
+        }
+
+
+        return this.channel.sendMessageEmbeds(defaultEmbed()).setActionRow(usuallyButtonList)
     }
+
 
     /**
      * To create new thread channel to [Control panel message][MessengerManager.message]

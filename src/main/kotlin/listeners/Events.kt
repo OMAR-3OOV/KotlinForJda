@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.command.UserContextInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import utilities.games.rpsutility.RpsUtil
@@ -19,6 +20,9 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
 
     private val commandManager = CommandManager(bot)
 
+    override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
+        event.reaction
+    }
     override fun onReady(event: ReadyEvent) {
         event.jda.presence.setPresence(OnlineStatus.ONLINE, Activity.playing("This bot is working on kotlin language!"))
 
@@ -42,11 +46,11 @@ class Events(bot: Main.Companion) : ListenerAdapter() {
                     val messenger = MessengerManager(user, channel)
 
                     if (MessengerManager.dm.containsKey(user) && MessengerManager.messenger.containsKey(user)) {
-                        channel.sendMessage(":x: | You're already with ${MessengerManager.dm[user]!!.getter.name} in messenger!")
+                        channel.sendMessage(":x: | You're already with ${MessengerManager.dm[user]!!.sender.name} in messenger!")
                             .queue()
                     }
 
-                    messenger.setSender(event.user)
+                    messenger.setGetter(event.user)
                     messenger.messengerStart()
                     event.interaction.reply("${user.name} has been found!").setEphemeral(true).queue()
                 } else {
